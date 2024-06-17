@@ -16,7 +16,6 @@ import smtplib
 from smtplib import SMTPException
 from socket import timeout
 
-from pas import own_email, own_password
 
 import os
 
@@ -284,10 +283,10 @@ def send_email(name, email, phone, message):
     try:
         with smtplib.SMTP("smtp.gmail.com", 587, timeout=10) as connection:
             connection.starttls()
-            connection.login(own_email, own_password)
-            connection.sendmail(own_email, own_email, email_message)
+            connection.login(os.getenv('own_email'), os.getenv('own_password'))
+            connection.sendmail(os.getenv('own_email'), os.getenv('own_password'), email_message)
     except (timeout, SMTPException) as e:
         print(f"An error occurred: {e}")
 
 if __name__ == "__main__":
-    app.run(debug=True, port=5001)
+    app.run(debug=False)
