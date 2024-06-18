@@ -284,7 +284,7 @@ def send_email(name, email, phone, message):
         with smtplib.SMTP("smtp.gmail.com", 587, timeout=10) as connection:
             connection.starttls()
             connection.login(os.getenv('own_email'), os.getenv('own_password'))
-            connection.sendmail(os.getenv('own_email'), os.getenv('own_password'), email_message)
+            connection.sendmail(os.getenv('own_email'), os.getenv('own_email'), email_message)
     except (timeout, SMTPException) as e:
         print(f"An error occurred: {e}")
 
