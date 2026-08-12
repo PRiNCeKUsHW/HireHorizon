@@ -113,10 +113,24 @@ Put them in a `.env` file in the project root; it is gitignored.
 `requirements.txt` (with `psycopg2-binary`) and the `Procfile` target a Render/Heroku-style
 host running `gunicorn main:app`. Set `DB_URI` and `secret_key` there.
 
+## Access control
+
+Admin is **user id 1** — whoever registers first. `admin_only` guards `/new-post`,
+`/edit-post/<id>` and `/delete/<id>`: anonymous visitors are redirected to the login page,
+signed-in non-admins get a 403.
+
+`/delete/<id>` is POST-only and rendered as a form, so it can't be triggered by a link
+prefetcher. CSRF protection is app-wide (`CSRFProtect`), which means any hand-written
+`<form method="post">` you add needs a token:
+
+```html
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+```
+
+Forms rendered through bootstrap-flask's `render_form` already include one.
+
 ## Known issues
 
-- `/edit-post/<id>` has no `@admin_only` decorator and no login check — anyone who can reach
-  the app can rewrite any listing. Fine behind a trusted LAN, not fine if you ever expose it.
-- `admin_only` reads `current_user.id` without checking authentication, so logged-out users
-  hitting an admin route get a 500 instead of a 403.
-- `/delete/<id>` is a `GET` route, so a link prefetcher can delete posts.
+- Commenting on a post doesn't redirect after the insert, so refreshing the page posts the
+  comment again.
+- Anyone who registers can comment; there is no moderation or rate limiting.

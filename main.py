@@ -5,6 +5,7 @@ from flask_ckeditor import CKEditor
 from flask_gravatar import Gravatar
 from flask_login import UserMixin, login_user, LoginManager, current_user, logout_user
 from flask_sqlalchemy import SQLAlchemy
+from flask_wtf.csrf import CSRFProtect
 from sqlalchemy.orm import relationship, DeclarativeBase, Mapped, mapped_column
 from sqlalchemy import Integer, String, Text
 from functools import wraps
@@ -29,6 +30,8 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv('secret_key') or os.urandom(24).hex()
 ckeditor = CKEditor(app)
 Bootstrap5(app)
+# Covers the hand-written forms too, not just the FlaskForm ones
+csrf = CSRFProtect(app)
 
 # Configure Flask-Login
 login_manager = LoginManager()
@@ -37,7 +40,9 @@ login_manager.init_app(app)
 
 @login_manager.user_loader
 def load_user(user_id):
-    return db.get_or_404(User, user_id)
+    # Returning None for an unknown id tells Flask-Login the session is stale.
+    # Aborting with 404 here would break every request carrying an old cookie.
+    return db.session.get(User, user_id)
 
 
 # For adding profile images to the comment section
@@ -114,6 +119,9 @@ with app.app_context():
 def admin_only(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
+        # Anonymous users have no .id, so check authentication before reading it
+        if not current_user.is_authenticated:
+            return redirect(url_for('login'))
         # If id is not 1 then return abort with 403 error
         if current_user.id != 1:
             return abort(403)
@@ -235,6 +243,7 @@ def add_new_post():
 
 # Use a decorator so only an admin user can edit a post
 @app.route("/edit-post/<int:post_id>", methods=["GET", "POST"])
+@admin_only
 def edit_post(post_id):
     post = db.get_or_404(BlogPost, post_id)
     edit_form = CreatePostForm(
@@ -255,8 +264,9 @@ def edit_post(post_id):
     return render_template("make-post.html", form=edit_form, is_edit=True, current_user=current_user)
 
 
-# Use a decorator so only an admin user can delete a post
-@app.route("/delete/<int:post_id>")
+# Use a decorator so only an admin user can delete a post.
+# POST-only: a GET route lets link prefetchers and crawlers delete posts.
+@app.route("/delete/<int:post_id>", methods=["POST"])
 @admin_only
 def delete_post(post_id):
     post_to_delete = db.get_or_404(BlogPost, post_id)
