@@ -4,7 +4,7 @@
 {% block meta_description %}{{ post.excerpt }}{% endblock %}
 
 {% block content %}
-<article class="card prose">
+<article class="postdetail">
   <header class="postdetail__head">
     <a href="{{ post.author.get_absolute_url }}" class="post__author">
       {% avatar post.author "md" %}
@@ -40,7 +40,7 @@
       <span aria-hidden="true">♥</span>
       <span class="action__count js-like-count">{{ post.like_count|default:0|compact }}</span>
     </button>
-    <a class="action" href="#comments"><span aria-hidden="true">💬</span>
+    <a class="action" href="#comments"><span aria-hidden="true">◇</span>
       <span class="action__count">{{ post.comment_count|default:0|compact }}</span></a>
     <button class="action js-repost {% if post.reposted_by_me %}is-on{% endif %}"
             data-url="{% url 'blog:toggle_repost' post.slug %}"
@@ -58,7 +58,7 @@
   </div>
 </article>
 
-<section class="card" id="comments">
+<section class="comments" id="comments">
   <h2 class="section__title">Replies</h2>
 
   {% if user.is_authenticated %}

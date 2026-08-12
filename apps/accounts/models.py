@@ -42,11 +42,6 @@ class User(AbstractUser):
             return parts[0][:2].upper()
         return (parts[0][0] + parts[1][0]).upper()
 
-    @property
-    def avatar_hue(self):
-        """Stable colour per user so the avatar looks intentional, not random."""
-        return sum(ord(c) for c in self.username) % 360
-
     def is_following(self, other):
         if not other or not self.is_authenticated:
             return False

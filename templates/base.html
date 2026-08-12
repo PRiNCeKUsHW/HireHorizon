@@ -4,13 +4,26 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="description" content="{% block meta_description %}HireHorizon — where ideas find their horizon. A text-first place to write, discover and connect.{% endblock %}" />
-    <meta name="color-scheme" content="light dark" />
+    <meta name="theme-color" content="#ffffff" />
     <title>{% block title %}HireHorizon{% endblock %}</title>
     <link rel="icon" href="{% static 'assets/favicon.ico' %}" />
     <link rel="stylesheet" href="{% static 'css/app.css' %}" />
   </head>
   <body>
     <a class="skip-link" href="#main">Skip to content</a>
+
+    {# Sidebar is hidden below 768px, so phones get a compact brand bar. #}
+    <header class="topbar">
+      <a class="brand" href="{% url 'core:home' %}">
+        <span class="brand__mark" aria-hidden="true">H</span>
+        <span class="brand__word">HireHorizon</span>
+      </a>
+      {% if user.is_authenticated %}
+        <a class="btn btn--ghost btn--sm" href="{% url 'core:search' %}">Search</a>
+      {% else %}
+        <a class="btn btn--primary btn--sm" href="{% url 'accounts:register' %}">Get started</a>
+      {% endif %}
+    </header>
 
     <div class="shell">
       {% include "partials/nav_sidebar.html" %}

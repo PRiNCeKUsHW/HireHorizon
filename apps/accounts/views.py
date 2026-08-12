@@ -5,13 +5,14 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import LoginView, LogoutView, PasswordChangeView
 from django.core.paginator import Paginator
 from django.db import IntegrityError
-from django.db.models import Count, Exists, OuterRef, Q
+from django.db.models import Count, Q
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse_lazy
 from django.views.decorators.http import require_POST
 
-from apps.blog.models import Comment, Like, Post
+from apps.blog.models import Comment, Post
+from apps.blog.views import annotate_for_viewer
 from apps.notifications.models import Notification
 
 from .forms import LoginForm, ProfileForm, RegisterForm
@@ -52,17 +53,6 @@ def register(request):
     return render(request, "accounts/register.html", {"form": form})
 
 
-def _annotated_posts(request, queryset):
-    """Attach the per-viewer flags a post card needs."""
-    if request.user.is_authenticated:
-        queryset = queryset.annotate(
-            liked_by_me=Exists(
-                Like.objects.filter(post=OuterRef("pk"), user=request.user)
-            )
-        )
-    return queryset
-
-
 def profile(request, username):
     user = get_object_or_404(
         User.objects.annotate(
@@ -85,12 +75,12 @@ def profile(request, username):
             .order_by("-created_at")
         )
     elif tab == "likes":
-        items = _annotated_posts(
-            request,
+        items = annotate_for_viewer(
             Post.objects.published()
             .filter(likes__user=user)
             .for_feed()
             .order_by("-likes__created_at"),
+            request.user,
         )
     else:
         tab = "posts"
@@ -98,7 +88,7 @@ def profile(request, username):
         # Drafts are private to their author.
         if request.user != user:
             queryset = queryset.published()
-        items = _annotated_posts(request, queryset.for_feed())
+        items = annotate_for_viewer(queryset.for_feed(), request.user)
 
     page = Paginator(items, settings.PAGE_SIZE).get_page(request.GET.get("page"))
     return render(

@@ -1,30 +1,38 @@
 {% load hh humanize %}
-<article class="card post">
+<article class="post">
   <div class="post__head">
     <a href="{{ post.author.get_absolute_url }}" class="post__author">
       {% avatar post.author "sm" %}
       <span class="post__names">
         <strong>{{ post.author.name }}</strong>
-        <span class="muted">@{{ post.author.username }}</span>
+        <span>@{{ post.author.username }}</span>
       </span>
     </a>
-    <time class="muted" datetime="{{ post.created_at|date:'c' }}" title="{{ post.created_at }}">
-      {{ post.created_at|naturaltime }}
-    </time>
+    {% if user.is_authenticated and post.author != user and not post.author_followed_by_me %}
+      {# Text-only orange CTA, opposite the author row. Only shown for authors
+         the viewer does not already follow. #}
+      <form method="post" action="{% url 'accounts:toggle_follow' post.author.username %}" class="inline-form">
+        {% csrf_token %}
+        <button class="linkcta" type="submit">Follow</button>
+      </form>
+    {% else %}
+      <time datetime="{{ post.created_at|date:'c' }}" title="{{ post.created_at }}">
+        {{ post.created_at|naturaltime }}
+      </time>
+    {% endif %}
   </div>
 
-  <h2 class="post__title">
-    <a href="{{ post.get_absolute_url }}">{{ post.title }}</a>
-  </h2>
-
-  {% if not post.is_published %}<span class="chip chip--draft">Draft</span>{% endif %}
+  <h2 class="post__title"><a href="{{ post.get_absolute_url }}">{{ post.title }}</a></h2>
 
   <p class="post__excerpt">{{ post.excerpt }}</p>
 
-  <div class="post__meta muted">
+  <div class="post__meta">
+    <span>{{ post.created_at|date:"j M" }}</span>
+    <span aria-hidden="true">·</span>
     <span>{{ post.reading_time }} min read</span>
     <span aria-hidden="true">·</span>
     <span>{{ post.view_count|default:0|compact }} views</span>
+    {% if not post.is_published %}<span class="chip chip--draft">Draft</span>{% endif %}
   </div>
 
   <div class="actions" data-slug="{{ post.slug }}">
@@ -38,7 +46,7 @@
     </button>
 
     <a class="action" href="{{ post.get_absolute_url }}#comments">
-      <span aria-hidden="true">💬</span>
+      <span aria-hidden="true">◇</span>
       <span class="action__count">{{ post.comment_count|default:0|compact }}</span>
       <span class="sr-only">comments</span>
     </a>

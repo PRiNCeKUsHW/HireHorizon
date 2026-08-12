@@ -1,18 +1,38 @@
 {% load hh %}
 <form class="rail__search" action="{% url 'core:search' %}" method="get" role="search">
   <label class="sr-only" for="rail-q">Search HireHorizon</label>
-  <input id="rail-q" type="search" name="q" placeholder="Search people and posts" value="{{ request.GET.q|default:'' }}" />
+  <input id="rail-q" type="search" name="q" placeholder="Search HireHorizon"
+         value="{{ request.GET.q|default:'' }}" />
 </form>
 
-<section class="card rail__card">
-  <h2 class="rail__title">Where ideas find their horizon</h2>
-  <p class="muted">HireHorizon is text-first by design. No images, no noise — just writing worth reading.</p>
-  {% if not user.is_authenticated %}
-    <a class="btn btn--primary btn--block" href="{% url 'accounts:register' %}">Create account</a>
-  {% endif %}
-</section>
+{% if not user.is_authenticated %}
+  <section class="rail__card">
+    <h2 class="rail__title">Where ideas find their horizon</h2>
+    <p class="rail__lede">
+      Text-first by design. No images, no noise — just writing worth reading.
+    </p>
+    <a class="btn btn--primary btn--block" href="{% url 'accounts:register' %}">Get started</a>
+  </section>
+{% endif %}
 
-<nav class="rail__links muted">
+{% if rail_posts %}
+  <section class="rail__section">
+    <h2 class="rail__heading">Up next</h2>
+    <div class="upnext">
+      {% for item in rail_posts %}
+        <a class="upnext__item" href="{{ item.get_absolute_url }}">
+          <span class="upnext__pub">{{ item.author.name }}</span>
+          <span class="upnext__headline">{{ item.title }}</span>
+          <span class="upnext__meta">
+            {{ item.reading_time }} min read · {{ item.like_count|default:0|compact }} likes
+          </span>
+        </a>
+      {% endfor %}
+    </div>
+  </section>
+{% endif %}
+
+<nav class="rail__links">
   <a href="{% url 'core:about' %}">About</a>
   <a href="{% url 'core:explore' %}">Explore</a>
   <a href="{% url 'core:contact' %}">Contact</a>

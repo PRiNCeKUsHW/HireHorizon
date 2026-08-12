@@ -14,7 +14,7 @@
   {% include "partials/empty.html" with title="Your feed is quiet" body="Follow a few people, or write the first thing yourself." cta_url=explore_url|default:"/explore/" cta_label="Find people to follow" %}
 
   {% if suggestions %}
-    <section class="card">
+    <section class="section">
       <h2 class="section__title">People to follow</h2>
       {% for person in suggestions %}
         {% include "partials/user_row.html" %}

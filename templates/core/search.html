@@ -20,7 +20,7 @@
 
   {% if tab == 'people' %}
     {% for person in page_obj %}
-      <div class="card">{% include "partials/user_row.html" %}</div>
+      {% include "partials/user_row.html" %}
     {% empty %}
       {% include "partials/empty.html" with title="No people found" body="No usernames or bios match that search." %}
     {% endfor %}

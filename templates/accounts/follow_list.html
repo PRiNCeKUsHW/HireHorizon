@@ -6,7 +6,7 @@
   <a class="btn btn--ghost btn--sm" href="{{ profile_user.get_absolute_url }}">Back to @{{ profile_user.username }}</a>
 </div>
 {% for person in page_obj %}
-  <div class="card">{% include "partials/user_row.html" %}</div>
+  {% include "partials/user_row.html" %}
 {% empty %}
   {% include "partials/empty.html" with title="Nobody here yet" body="This list is empty for now." %}
 {% endfor %}

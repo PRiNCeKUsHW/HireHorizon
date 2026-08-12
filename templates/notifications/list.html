@@ -10,7 +10,7 @@
   </form>
 </div>
 {% for note in page_obj %}
-  <a class="card noterow {% if not note.is_read %}is-unread{% endif %}" href="{{ note.target_url }}">
+  <a class="noterow {% if not note.is_read %}is-unread{% endif %}" href="{{ note.target_url }}">
     {% avatar note.actor "sm" %}
     <span class="noterow__text">
       <strong>{{ note.actor.name }}</strong> <span class="muted">@{{ note.actor.username }}</span>

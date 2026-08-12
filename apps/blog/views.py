@@ -12,6 +12,7 @@ from django.urls import reverse_lazy
 from django.views.decorators.http import require_POST
 from django.views.generic import CreateView, DeleteView, UpdateView
 
+from apps.accounts.models import Follow
 from apps.core.utils import notify_mentions
 from apps.notifications.models import Notification
 
@@ -34,6 +35,11 @@ def annotate_for_viewer(queryset, user):
         ),
         reposted_by_me=Exists(
             Repost.objects.filter(original_post=OuterRef("pk"), reposted_by=user)
+        ),
+        # Drives the inline Follow link on a post card, so it is not offered
+        # for people the viewer already follows.
+        author_followed_by_me=Exists(
+            Follow.objects.filter(follower=user, following=OuterRef("author_id"))
         ),
     )
 

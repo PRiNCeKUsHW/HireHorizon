@@ -4,7 +4,7 @@
 {% block content %}
 <div class="pagehead"><h1 class="pagehead__title">Messages</h1></div>
 {% for thread in threads %}
-  <a class="card threadrow" href="{% url 'messaging:conversation' thread.conversation.pk %}">
+  <a class="threadrow" href="{% url 'messaging:conversation' thread.conversation.pk %}">
     {% if thread.other %}{% avatar thread.other "sm" %}{% endif %}
     <span class="threadrow__text">
       <strong>{% if thread.other %}{{ thread.other.name }}{% else %}Conversation{% endif %}</strong>
