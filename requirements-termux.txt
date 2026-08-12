@@ -1,9 +1,6 @@
 # Dependencies for running locally on Termux / any SQLite-only setup.
 # Same as requirements.txt but without psycopg2-binary, which has no Android
 # wheel and is only needed for the Postgres deploy.
-#
-# If pip fails to build on Termux's Python (3.13), loosen the SQLAlchemy pin to
-# SQLAlchemy>=2.0.31 -- see README.md.
 Bootstrap_Flask==2.2.0
 Flask_CKEditor==0.4.6
 Flask_Login==0.6.3
@@ -13,7 +10,10 @@ WTForms==3.0.1
 Werkzeug==3.0.0
 Flask==2.3.2
 flask_sqlalchemy==3.1.1
-SQLAlchemy==2.0.25
+# 2.0.30 is the first release whose TypingOnly check tolerates the
+# __firstlineno__ / __static_attributes__ attributes Python 3.13 adds to
+# classes; anything older dies on import under Termux's Python.
+SQLAlchemy>=2.0.36,<2.1
 gunicorn==21.2.0
 python-dotenv
 # Pure Python, so it installs on Termux without a Rust/C toolchain.

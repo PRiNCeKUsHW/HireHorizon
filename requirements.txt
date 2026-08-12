@@ -7,7 +7,8 @@ WTForms==3.0.1
 Werkzeug==3.0.0
 Flask==2.3.2
 flask_sqlalchemy==3.1.1
-SQLAlchemy==2.0.25
+# Must be >=2.0.30 to import at all on Python 3.13
+SQLAlchemy>=2.0.36,<2.1
 gunicorn==21.2.0
 psycopg2-binary==2.9.9
 python-dotenv

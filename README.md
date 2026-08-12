@@ -77,10 +77,14 @@ The schema is recreated on startup, and the first account you register becomes t
 
 ### Troubleshooting
 
-**pip fails building SQLAlchemy.** Termux ships Python 3.13, which the pinned
-`SQLAlchemy==2.0.25` predates. Relax that one line in `requirements-termux.txt` to
-`SQLAlchemy>=2.0.31`. If it still fails, install an older interpreter:
-`pkg install tur-repo && pkg install python3.11`, then recreate the venv with it.
+**`AssertionError: ... directly inherits TypingOnly but has additional attributes
+{'__firstlineno__', '__static_attributes__'}`.** SQLAlchemy older than 2.0.30 cannot be
+imported on Python 3.13, which is what Termux ships. The requirements already pin past it,
+so this means the venv has a stale version — rebuild it:
+
+```bash
+rm -rf .venv && bash run.sh
+```
 
 **gunicorn misbehaves.** Fall back to the Flask dev server, which binds the same way:
 
