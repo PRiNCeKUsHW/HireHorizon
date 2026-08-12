@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}Settings — HireHorizon{% endblock %}
+{% block content %}
+<div class="pagehead"><h1 class="pagehead__title">Settings</h1></div>
+<section class="card">
+  <ul class="linklist">
+    <li><a href="{% url 'accounts:edit_profile' %}">Edit profile</a><span class="muted">Name, bio, location, website</span></li>
+    <li><a href="{% url 'accounts:password_change' %}">Change password</a><span class="muted">Requires your current password</span></li>
+    <li><a href="{% url 'blog:my_posts' %}">Your posts</a><span class="muted">Published posts and drafts</span></li>
+    <li><a href="{% url 'blog:bookmarks' %}">Bookmarks</a><span class="muted">Posts you saved</span></li>
+  </ul>
+  <p class="muted">
+    HireHorizon sends no email, so there is no email-based password reset. If you
+    lose your password, an administrator can set a new one with
+    <code>python manage.py changepassword &lt;username&gt;</code>.
+  </p>
+</section>
+{% endblock %}

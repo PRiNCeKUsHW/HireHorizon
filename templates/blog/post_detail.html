@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+{% load hh humanize %}
+{% block title %}{{ post.title }} — HireHorizon{% endblock %}
+{% block meta_description %}{{ post.excerpt }}{% endblock %}
+
+{% block content %}
+<article class="card prose">
+  <header class="postdetail__head">
+    <a href="{{ post.author.get_absolute_url }}" class="post__author">
+      {% avatar post.author "md" %}
+      <span class="post__names">
+        <strong>{{ post.author.name }}</strong>
+        <span class="muted">@{{ post.author.username }}</span>
+      </span>
+    </a>
+    {% if post.author == user %}
+      <div class="postdetail__owner">
+        <a class="btn btn--ghost btn--sm" href="{% url 'blog:post_edit' post.slug %}">Edit</a>
+        <a class="btn btn--danger btn--sm" href="{% url 'blog:post_delete' post.slug %}">Delete</a>
+      </div>
+    {% endif %}
+  </header>
+
+  <h1 class="postdetail__title">{{ post.title }}</h1>
+
+  <p class="postdetail__meta muted">
+    <time datetime="{{ post.created_at|date:'c' }}">{{ post.created_at|date:"j M Y" }}</time>
+    <span aria-hidden="true">·</span> {{ post.reading_time }} min read
+    <span aria-hidden="true">·</span> {{ view_total|compact }} views
+    {% if not post.is_published %}<span class="chip chip--draft">Draft</span>{% endif %}
+  </p>
+
+  <div class="postdetail__body">{{ post.content|rich_text }}</div>
+
+  <div class="actions" data-slug="{{ post.slug }}">
+    <button class="action js-like {% if post.liked_by_me %}is-on{% endif %}"
+            data-url="{% url 'blog:toggle_like' post.slug %}"
+            {% if not user.is_authenticated %}data-auth="0"{% endif %}
+            aria-pressed="{% if post.liked_by_me %}true{% else %}false{% endif %}">
+      <span aria-hidden="true">♥</span>
+      <span class="action__count js-like-count">{{ post.like_count|default:0|compact }}</span>
+    </button>
+    <a class="action" href="#comments"><span aria-hidden="true">💬</span>
+      <span class="action__count">{{ post.comment_count|default:0|compact }}</span></a>
+    <button class="action js-repost {% if post.reposted_by_me %}is-on{% endif %}"
+            data-url="{% url 'blog:toggle_repost' post.slug %}"
+            {% if not user.is_authenticated %}data-auth="0"{% endif %}
+            aria-pressed="{% if post.reposted_by_me %}true{% else %}false{% endif %}">
+      <span aria-hidden="true">⇄</span>
+      <span class="action__count js-repost-count">{{ post.repost_count|default:0|compact }}</span>
+    </button>
+    <button class="action action--end js-bookmark {% if post.bookmarked_by_me %}is-on{% endif %}"
+            data-url="{% url 'blog:toggle_bookmark' post.slug %}"
+            {% if not user.is_authenticated %}data-auth="0"{% endif %}
+            aria-pressed="{% if post.bookmarked_by_me %}true{% else %}false{% endif %}">
+      <span aria-hidden="true">❏</span>
+    </button>
+  </div>
+</article>
+
+<section class="card" id="comments">
+  <h2 class="section__title">Replies</h2>
+
+  {% if user.is_authenticated %}
+    <form method="post" action="{% url 'blog:add_comment' post.slug %}" class="form form--inline">
+      {% csrf_token %}
+      {# Set by the Reply buttons below so a reply attaches to its parent. #}
+      <input type="hidden" name="parent" id="reply-parent" value="" />
+      <p class="replying-to muted" id="replying-to" hidden>
+        Replying to <span id="replying-to-name"></span>
+        <button type="button" class="linklike js-cancel-reply">cancel</button>
+      </p>
+      {{ comment_form.body }}
+      <button class="btn btn--primary" type="submit">Reply</button>
+    </form>
+  {% else %}
+    <p class="muted"><a href="{% url 'accounts:login' %}?next={{ request.path }}">Log in</a> to join the conversation.</p>
+  {% endif %}
+
+  {% for comment in comments %}
+    <div class="comment" id="comment-{{ comment.pk }}">
+      <a href="{{ comment.author.get_absolute_url }}" class="comment__author">
+        {% avatar comment.author "sm" %}
+        <span><strong>{{ comment.author.name }}</strong>
+        <span class="muted">@{{ comment.author.username }} · {{ comment.created_at|naturaltime }}{% if comment.is_edited %} · edited{% endif %}</span></span>
+      </a>
+      <div class="comment__body">{{ comment.body|rich_text }}</div>
+
+      <div class="comment__tools">
+        {% if user.is_authenticated %}
+          <button class="linklike js-reply" data-parent="{{ comment.pk }}" data-name="{{ comment.author.username }}">Reply</button>
+        {% endif %}
+        {% if comment.author == user %}
+          <a class="linklike" href="{% url 'blog:comment_edit' comment.pk %}">Edit</a>
+          <form method="post" action="{% url 'blog:comment_delete' comment.pk %}" class="inline-form"
+                onsubmit="return confirm('Delete this reply?');">
+            {% csrf_token %}
+            <button class="linklike linklike--danger" type="submit">Delete</button>
+          </form>
+        {% endif %}
+      </div>
+
+      {% for reply in comment.replies.all %}
+        <div class="comment comment--reply" id="comment-{{ reply.pk }}">
+          <a href="{{ reply.author.get_absolute_url }}" class="comment__author">
+            {% avatar reply.author "xs" %}
+            <span><strong>{{ reply.author.name }}</strong>
+            <span class="muted">@{{ reply.author.username }} · {{ reply.created_at|naturaltime }}</span></span>
+          </a>
+          <div class="comment__body">{{ reply.body|rich_text }}</div>
+          {% if reply.author == user %}
+            <div class="comment__tools">
+              <a class="linklike" href="{% url 'blog:comment_edit' reply.pk %}">Edit</a>
+              <form method="post" action="{% url 'blog:comment_delete' reply.pk %}" class="inline-form"
+                    onsubmit="return confirm('Delete this reply?');">
+                {% csrf_token %}
+                <button class="linklike linklike--danger" type="submit">Delete</button>
+              </form>
+            </div>
+          {% endif %}
+        </div>
+      {% endfor %}
+    </div>
+  {% empty %}
+    <p class="muted">No replies yet. Start the conversation.</p>
+  {% endfor %}
+</section>
+{% endblock %}

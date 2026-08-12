@@ -1,0 +1,5 @@
+{% comment %}
+CSS-only avatar. HireHorizon accepts no image uploads, so identity is drawn
+from the user's initials and a hue derived from their username.
+{% endcomment %}
+<span class="avatar avatar--{{ size }}" style="--hue: {{ user.avatar_hue }}" aria-hidden="true">{{ user.initials }}</span>

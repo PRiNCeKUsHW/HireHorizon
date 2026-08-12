@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Edit profile — HireHorizon{% endblock %}
+{% block content %}
+<div class="pagehead"><h1 class="pagehead__title">Edit profile</h1></div>
+<section class="card">
+  <form method="post" class="form" novalidate>
+    {% csrf_token %}
+    {% for field in form %}
+      <div class="field">
+        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+        {{ field }}
+        {% if field.help_text %}<small class="muted">{{ field.help_text }}</small>{% endif %}
+        {% for error in field.errors %}<small class="field__error">{{ error }}</small>{% endfor %}
+      </div>
+    {% endfor %}
+    <p class="muted">HireHorizon uses initials for avatars — there is no profile picture to upload.</p>
+    <div class="form__actions">
+      <button class="btn btn--primary" type="submit">Save</button>
+      <a class="btn btn--ghost" href="{{ user.get_absolute_url }}">Cancel</a>
+    </div>
+  </form>
+</section>
+{% endblock %}

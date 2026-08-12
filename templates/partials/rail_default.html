@@ -1,0 +1,19 @@
+{% load hh %}
+<form class="rail__search" action="{% url 'core:search' %}" method="get" role="search">
+  <label class="sr-only" for="rail-q">Search HireHorizon</label>
+  <input id="rail-q" type="search" name="q" placeholder="Search people and posts" value="{{ request.GET.q|default:'' }}" />
+</form>
+
+<section class="card rail__card">
+  <h2 class="rail__title">Where ideas find their horizon</h2>
+  <p class="muted">HireHorizon is text-first by design. No images, no noise — just writing worth reading.</p>
+  {% if not user.is_authenticated %}
+    <a class="btn btn--primary btn--block" href="{% url 'accounts:register' %}">Create account</a>
+  {% endif %}
+</section>
+
+<nav class="rail__links muted">
+  <a href="{% url 'core:about' %}">About</a>
+  <a href="{% url 'core:explore' %}">Explore</a>
+  <a href="{% url 'core:contact' %}">Contact</a>
+</nav>

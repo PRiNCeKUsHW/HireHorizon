@@ -1,0 +1,39 @@
+{% load static hh %}<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="description" content="{% block meta_description %}HireHorizon — where ideas find their horizon. A text-first place to write, discover and connect.{% endblock %}" />
+    <meta name="color-scheme" content="light dark" />
+    <title>{% block title %}HireHorizon{% endblock %}</title>
+    <link rel="icon" href="{% static 'assets/favicon.ico' %}" />
+    <link rel="stylesheet" href="{% static 'css/app.css' %}" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+
+    <div class="shell">
+      {% include "partials/nav_sidebar.html" %}
+
+      <main class="main" id="main">
+        {% if messages %}
+          <div class="flashes" role="status">
+            {% for message in messages %}
+              <div class="flash flash--{{ message.tags|default:'info' }}">{{ message }}</div>
+            {% endfor %}
+          </div>
+        {% endif %}
+        {% block content %}{% endblock %}
+      </main>
+
+      <aside class="rail">
+        {% block rail %}{% include "partials/rail_default.html" %}{% endblock %}
+      </aside>
+    </div>
+
+    {% include "partials/nav_mobile.html" %}
+
+    <script src="{% static 'js/app.js' %}" defer></script>
+    {% block scripts %}{% endblock %}
+  </body>
+</html>

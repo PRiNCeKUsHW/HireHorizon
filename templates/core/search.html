@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% load hh %}
+{% block title %}{% if query %}{{ query }} — Search{% else %}Search{% endif %} — HireHorizon{% endblock %}
+
+{% block content %}
+<div class="pagehead"><h1 class="pagehead__title">Search</h1></div>
+
+<form class="searchbar" method="get" role="search">
+  <label class="sr-only" for="q">Search people and posts</label>
+  <input id="q" type="search" name="q" value="{{ query }}" placeholder="Search people and posts" autofocus />
+  <input type="hidden" name="tab" value="{{ tab }}" />
+  <button class="btn btn--primary" type="submit">Search</button>
+</form>
+
+{% if query %}
+  <nav class="tabs" aria-label="Result type">
+    <a class="tabs__item {% if tab == 'posts' %}is-active{% endif %}" href="?q={{ query|urlencode }}&amp;tab=posts">Posts</a>
+    <a class="tabs__item {% if tab == 'people' %}is-active{% endif %}" href="?q={{ query|urlencode }}&amp;tab=people">People</a>
+  </nav>
+
+  {% if tab == 'people' %}
+    {% for person in page_obj %}
+      <div class="card">{% include "partials/user_row.html" %}</div>
+    {% empty %}
+      {% include "partials/empty.html" with title="No people found" body="No usernames or bios match that search." %}
+    {% endfor %}
+  {% else %}
+    {% for post in page_obj %}
+      {% include "partials/post_card.html" %}
+    {% empty %}
+      {% include "partials/empty.html" with title="No posts found" body="No titles or post text match that search." %}
+    {% endfor %}
+  {% endif %}
+
+  {% include "partials/pagination.html" %}
+{% else %}
+  {% include "partials/empty.html" with title="Search HireHorizon" body="Find people by username or bio, and posts by title or content." %}
+{% endif %}
+{% endblock %}

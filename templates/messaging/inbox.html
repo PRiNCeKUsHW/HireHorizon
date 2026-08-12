@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% load hh humanize %}
+{% block title %}Messages — HireHorizon{% endblock %}
+{% block content %}
+<div class="pagehead"><h1 class="pagehead__title">Messages</h1></div>
+{% for thread in threads %}
+  <a class="card threadrow" href="{% url 'messaging:conversation' thread.conversation.pk %}">
+    {% if thread.other %}{% avatar thread.other "sm" %}{% endif %}
+    <span class="threadrow__text">
+      <strong>{% if thread.other %}{{ thread.other.name }}{% else %}Conversation{% endif %}</strong>
+      <span class="muted">{% if thread.last %}{{ thread.last.body|truncatechars:70 }}{% else %}No messages yet{% endif %}</span>
+    </span>
+    {% if thread.last %}<time class="muted">{{ thread.last.created_at|naturaltime }}</time>{% endif %}
+  </a>
+{% empty %}
+  {% include "partials/empty.html" with title="No messages yet" body="Open someone's profile and tap Message to start a conversation." cta_url="/explore/" cta_label="Find people" %}
+{% endfor %}
+{% endblock %}

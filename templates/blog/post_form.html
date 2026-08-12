@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}{% if is_edit %}Edit post{% else %}Write a post{% endif %} — HireHorizon{% endblock %}
+
+{% block content %}
+<div class="pagehead">
+  <h1 class="pagehead__title">{% if is_edit %}Edit post{% else %}Write a post{% endif %}</h1>
+</div>
+
+<section class="card">
+  <form method="post" class="form" novalidate>
+    {% csrf_token %}
+    {% if form.non_field_errors %}
+      <div class="flash flash--error">{{ form.non_field_errors }}</div>
+    {% endif %}
+    {% for field in form %}
+      <div class="field">
+        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+        {{ field }}
+        {% if field.help_text %}<small class="muted">{{ field.help_text }}</small>{% endif %}
+        {% for error in field.errors %}<small class="field__error">{{ error }}</small>{% endfor %}
+      </div>
+    {% endfor %}
+    <p class="muted">Text only — HireHorizon does not accept image uploads. Mention people with @username.</p>
+    <div class="form__actions">
+      <button class="btn btn--primary" type="submit">{% if is_edit %}Save changes{% else %}Publish{% endif %}</button>
+      <a class="btn btn--ghost" href="{% url 'core:home' %}">Cancel</a>
+    </div>
+  </form>
+</section>
+{% endblock %}

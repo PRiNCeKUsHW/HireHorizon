@@ -1,5 +1,22 @@
-.DS_Store
+# Python
 __pycache__/
-.env
+*.py[cod]
 .venv/
-*.pyc
+venv/
+env/
+
+# Django
+db.sqlite3
+db.sqlite3-journal
+staticfiles/
+*.log
+
+# Secrets — never commit
+.env
+
+# instance/posts.db is the legacy Flask database. It stays tracked so
+# `manage.py import_legacy` works straight after a clone. Once you have
+# imported it, drop it with: git rm --cached instance/posts.db
+
+# OS
+.DS_Store

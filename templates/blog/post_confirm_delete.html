@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}Delete post — HireHorizon{% endblock %}
+{% block content %}
+<div class="pagehead"><h1 class="pagehead__title">Delete post</h1></div>
+<section class="card">
+  <p>Delete <strong>{{ object.title }}</strong>? This also removes its replies, likes and bookmarks. This cannot be undone.</p>
+  <form method="post" class="form__actions">
+    {% csrf_token %}
+    <button class="btn btn--danger" type="submit">Delete permanently</button>
+    <a class="btn btn--ghost" href="{{ object.get_absolute_url }}">Keep it</a>
+  </form>
+</section>
+{% endblock %}

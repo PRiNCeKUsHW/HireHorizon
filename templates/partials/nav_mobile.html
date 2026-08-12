@@ -1,0 +1,29 @@
+{% load hh %}
+<nav class="tabbar" aria-label="Primary">
+  <a class="tabbar__item {% if request.resolver_match.view_name == 'core:home' %}is-active{% endif %}" href="{% url 'core:home' %}">
+    <span aria-hidden="true">◎</span><span class="tabbar__label">Home</span>
+  </a>
+  <a class="tabbar__item {% if request.resolver_match.view_name == 'core:explore' %}is-active{% endif %}" href="{% url 'core:explore' %}">
+    <span aria-hidden="true">✳</span><span class="tabbar__label">Explore</span>
+  </a>
+
+  {% if user.is_authenticated %}
+    <a class="tabbar__item tabbar__item--cta" href="{% url 'blog:post_create' %}" aria-label="Write a post">
+      <span aria-hidden="true">✚</span>
+    </a>
+    <a class="tabbar__item {% if request.resolver_match.namespace == 'notifications' %}is-active{% endif %}" href="{% url 'notifications:list' %}">
+      <span aria-hidden="true">◔</span><span class="tabbar__label">Alerts</span>
+      {% if unread_notifications %}<span class="badge badge--dot"></span>{% endif %}
+    </a>
+    <a class="tabbar__item {% if request.resolver_match.namespace == 'messaging' %}is-active{% endif %}" href="{% url 'messaging:inbox' %}">
+      <span aria-hidden="true">✉</span><span class="tabbar__label">Inbox</span>
+    </a>
+  {% else %}
+    <a class="tabbar__item {% if request.resolver_match.view_name == 'core:search' %}is-active{% endif %}" href="{% url 'core:search' %}">
+      <span aria-hidden="true">⌕</span><span class="tabbar__label">Search</span>
+    </a>
+    <a class="tabbar__item" href="{% url 'accounts:login' %}">
+      <span aria-hidden="true">☺</span><span class="tabbar__label">Log in</span>
+    </a>
+  {% endif %}
+</nav>

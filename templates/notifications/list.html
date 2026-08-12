@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% load hh humanize %}
+{% block title %}Notifications — HireHorizon{% endblock %}
+{% block content %}
+<div class="pagehead">
+  <h1 class="pagehead__title">Notifications</h1>
+  <form method="post" action="{% url 'notifications:mark_all_read' %}">
+    {% csrf_token %}
+    <button class="btn btn--ghost btn--sm" type="submit">Mark all read</button>
+  </form>
+</div>
+{% for note in page_obj %}
+  <a class="card noterow {% if not note.is_read %}is-unread{% endif %}" href="{{ note.target_url }}">
+    {% avatar note.actor "sm" %}
+    <span class="noterow__text">
+      <strong>{{ note.actor.name }}</strong> <span class="muted">@{{ note.actor.username }}</span>
+      <span>{{ note.verb }}</span>
+    </span>
+    <time class="muted">{{ note.created_at|naturaltime }}</time>
+  </a>
+{% empty %}
+  {% include "partials/empty.html" with title="No notifications" body="Follows, likes, replies and mentions will show up here." %}
+{% endfor %}
+{% include "partials/pagination.html" %}
+{% endblock %}

@@ -1,0 +1,19 @@
+{% load hh %}
+<div class="userrow">
+  <a class="userrow__main" href="{{ person.get_absolute_url }}">
+    {% avatar person "sm" %}
+    <span class="userrow__text">
+      <strong>{{ person.name }}</strong>
+      <span class="muted">@{{ person.username }}</span>
+      {% if person.bio %}<span class="userrow__bio muted">{{ person.bio|truncatechars:80 }}</span>{% endif %}
+    </span>
+  </a>
+  {% if user.is_authenticated and person != user %}
+    <form method="post" action="{% url 'accounts:toggle_follow' person.username %}">
+      {% csrf_token %}
+      <button class="btn btn--sm {% if person in following_set %}btn--ghost{% else %}btn--primary{% endif %}" type="submit">
+        {% if person in following_set %}Following{% else %}Follow{% endif %}
+      </button>
+    </form>
+  {% endif %}
+</div>

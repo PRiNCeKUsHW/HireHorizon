@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% load hh %}
+{% block title %}HireHorizon — Where Ideas Find Their Horizon{% endblock %}
+
+{% block content %}
+<section class="hero">
+  <p class="hero__eyebrow">HireHorizon</p>
+  <h1 class="hero__title">Where Ideas Find Their Horizon.</h1>
+  <p class="hero__lede">
+    A place to write, discover and connect through ideas. Text-first by design —
+    no images to hide behind, just writing worth reading.
+  </p>
+  <div class="hero__actions">
+    <a class="btn btn--primary" href="{% url 'accounts:register' %}">Join HireHorizon</a>
+    <a class="btn btn--ghost" href="{% url 'core:explore' %}">Explore posts</a>
+  </div>
+</section>
+
+<section class="section">
+  <h2 class="section__title">Latest from the community</h2>
+  {% for post in latest_posts %}
+    {% include "partials/post_card.html" %}
+  {% empty %}
+    {% include "partials/empty.html" with title="Nothing published yet" body="Be the first to write something on HireHorizon." cta_url=None %}
+  {% endfor %}
+</section>
+{% endblock %}

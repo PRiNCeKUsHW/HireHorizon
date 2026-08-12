@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% load hh humanize %}
+{% block title %}{{ profile_user.name }} (@{{ profile_user.username }}) — HireHorizon{% endblock %}
+{% block meta_description %}{{ profile_user.bio|default:profile_user.name }}{% endblock %}
+
+{% block content %}
+<section class="card profile">
+  <div class="profile__top">
+    {% avatar profile_user "lg" %}
+    <div class="profile__actions">
+      {% if is_self %}
+        <a class="btn btn--ghost btn--sm" href="{% url 'accounts:edit_profile' %}">Edit profile</a>
+      {% elif user.is_authenticated %}
+        <form method="post" action="{% url 'accounts:toggle_follow' profile_user.username %}" class="inline-form js-follow-form">
+          {% csrf_token %}
+          <button class="btn btn--sm {% if is_following %}btn--ghost{% else %}btn--primary{% endif %} js-follow-btn"
+                  data-url="{% url 'accounts:toggle_follow' profile_user.username %}"
+                  aria-pressed="{% if is_following %}true{% else %}false{% endif %}">
+            {% if is_following %}Following{% else %}Follow{% endif %}
+          </button>
+        </form>
+        <form method="post" action="{% url 'messaging:start' profile_user.username %}" class="inline-form">
+          {% csrf_token %}
+          <button class="btn btn--ghost btn--sm" type="submit">Message</button>
+        </form>
+      {% else %}
+        <a class="btn btn--primary btn--sm" href="{% url 'accounts:login' %}?next={{ request.path }}">Follow</a>
+      {% endif %}
+    </div>
+  </div>
+
+  <h1 class="profile__name">{{ profile_user.name }}</h1>
+  <p class="profile__handle muted">@{{ profile_user.username }}</p>
+  {% if profile_user.bio %}<p class="profile__bio">{{ profile_user.bio|rich_text }}</p>{% endif %}
+
+  <p class="profile__facts muted">
+    {% if profile_user.location %}<span>{{ profile_user.location }}</span> <span aria-hidden="true">·</span>{% endif %}
+    {% if profile_user.website %}<a href="{{ profile_user.website }}" rel="nofollow noopener ugc">{{ profile_user.website }}</a> <span aria-hidden="true">·</span>{% endif %}
+    <span>Joined {{ profile_user.date_joined|date:"F Y" }}</span>
+  </p>
+
+  <p class="profile__stats">
+    <a href="{% url 'accounts:followers' profile_user.username %}"><strong>{{ profile_user.followers_count|compact }}</strong> <span class="muted">Followers</span></a>
+    <a href="{% url 'accounts:following' profile_user.username %}"><strong>{{ profile_user.following_count|compact }}</strong> <span class="muted">Following</span></a>
+    <span><strong>{{ profile_user.posts_count|compact }}</strong> <span class="muted">Posts</span></span>
+  </p>
+</section>
+
+<nav class="tabs" aria-label="Profile sections">
+  <a class="tabs__item {% if tab == 'posts' %}is-active{% endif %}" href="?tab=posts">Posts</a>
+  <a class="tabs__item {% if tab == 'replies' %}is-active{% endif %}" href="?tab=replies">Replies</a>
+  <a class="tabs__item {% if tab == 'likes' %}is-active{% endif %}" href="?tab=likes">Likes</a>
+</nav>
+
+{% if tab == 'replies' %}
+  {% for comment in page_obj %}
+    <article class="card comment">
+      <p class="muted">Replying to <a href="{{ comment.post.get_absolute_url }}">{{ comment.post.title }}</a> · {{ comment.created_at|naturaltime }}</p>
+      <div class="comment__body">{{ comment.body|rich_text }}</div>
+    </article>
+  {% empty %}
+    {% include "partials/empty.html" with title="No replies yet" body="Replies to other people's posts show up here." %}
+  {% endfor %}
+{% else %}
+  {% for post in page_obj %}
+    {% include "partials/post_card.html" %}
+  {% empty %}
+    {% if tab == 'likes' %}
+      {% include "partials/empty.html" with title="No likes yet" body="Posts this account likes will appear here." %}
+    {% else %}
+      {% include "partials/empty.html" with title="No posts yet" body="When this account publishes something, it shows up here." %}
+    {% endif %}
+  {% endfor %}
+{% endif %}
+
+{% include "partials/pagination.html" %}
+{% endblock %}

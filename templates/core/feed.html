@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% load hh %}
+{% block title %}Home — HireHorizon{% endblock %}
+
+{% block content %}
+<div class="pagehead">
+  <h1 class="pagehead__title">Home</h1>
+  <a class="btn btn--primary btn--sm" href="{% url 'blog:post_create' %}">Write</a>
+</div>
+
+{% for post in page_obj %}
+  {% include "partials/post_card.html" %}
+{% empty %}
+  {% include "partials/empty.html" with title="Your feed is quiet" body="Follow a few people, or write the first thing yourself." cta_url=explore_url|default:"/explore/" cta_label="Find people to follow" %}
+
+  {% if suggestions %}
+    <section class="card">
+      <h2 class="section__title">People to follow</h2>
+      {% for person in suggestions %}
+        {% include "partials/user_row.html" %}
+      {% endfor %}
+    </section>
+  {% endif %}
+{% endfor %}
+
+{% include "partials/pagination.html" %}
+{% endblock %}

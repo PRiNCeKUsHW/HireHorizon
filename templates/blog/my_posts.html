@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}Your posts — HireHorizon{% endblock %}
+{% block content %}
+<div class="pagehead">
+  <h1 class="pagehead__title">Your posts</h1>
+  <a class="btn btn--primary btn--sm" href="{% url 'blog:post_create' %}">Write</a>
+</div>
+{% for post in page_obj %}
+  {% include "partials/post_card.html" %}
+{% empty %}
+  {% include "partials/empty.html" with title="Nothing written yet" body="Your published posts and drafts will appear here." cta_url="/post/create/" cta_label="Write your first post" %}
+{% endfor %}
+{% include "partials/pagination.html" %}
+{% endblock %}

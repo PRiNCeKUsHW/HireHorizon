@@ -1,0 +1,63 @@
+{% load hh humanize %}
+<article class="card post">
+  <div class="post__head">
+    <a href="{{ post.author.get_absolute_url }}" class="post__author">
+      {% avatar post.author "sm" %}
+      <span class="post__names">
+        <strong>{{ post.author.name }}</strong>
+        <span class="muted">@{{ post.author.username }}</span>
+      </span>
+    </a>
+    <time class="muted" datetime="{{ post.created_at|date:'c' }}" title="{{ post.created_at }}">
+      {{ post.created_at|naturaltime }}
+    </time>
+  </div>
+
+  <h2 class="post__title">
+    <a href="{{ post.get_absolute_url }}">{{ post.title }}</a>
+  </h2>
+
+  {% if not post.is_published %}<span class="chip chip--draft">Draft</span>{% endif %}
+
+  <p class="post__excerpt">{{ post.excerpt }}</p>
+
+  <div class="post__meta muted">
+    <span>{{ post.reading_time }} min read</span>
+    <span aria-hidden="true">·</span>
+    <span>{{ post.view_count|default:0|compact }} views</span>
+  </div>
+
+  <div class="actions" data-slug="{{ post.slug }}">
+    <button class="action js-like {% if post.liked_by_me %}is-on{% endif %}"
+            data-url="{% url 'blog:toggle_like' post.slug %}"
+            {% if not user.is_authenticated %}data-auth="0"{% endif %}
+            aria-pressed="{% if post.liked_by_me %}true{% else %}false{% endif %}">
+      <span aria-hidden="true">♥</span>
+      <span class="action__count js-like-count">{{ post.like_count|default:0|compact }}</span>
+      <span class="sr-only">likes</span>
+    </button>
+
+    <a class="action" href="{{ post.get_absolute_url }}#comments">
+      <span aria-hidden="true">💬</span>
+      <span class="action__count">{{ post.comment_count|default:0|compact }}</span>
+      <span class="sr-only">comments</span>
+    </a>
+
+    <button class="action js-repost {% if post.reposted_by_me %}is-on{% endif %}"
+            data-url="{% url 'blog:toggle_repost' post.slug %}"
+            {% if not user.is_authenticated %}data-auth="0"{% endif %}
+            aria-pressed="{% if post.reposted_by_me %}true{% else %}false{% endif %}">
+      <span aria-hidden="true">⇄</span>
+      <span class="action__count js-repost-count">{{ post.repost_count|default:0|compact }}</span>
+      <span class="sr-only">reposts</span>
+    </button>
+
+    <button class="action action--end js-bookmark {% if post.bookmarked_by_me %}is-on{% endif %}"
+            data-url="{% url 'blog:toggle_bookmark' post.slug %}"
+            {% if not user.is_authenticated %}data-auth="0"{% endif %}
+            aria-pressed="{% if post.bookmarked_by_me %}true{% else %}false{% endif %}">
+      <span aria-hidden="true">❏</span>
+      <span class="sr-only">bookmark</span>
+    </button>
+  </div>
+</article>

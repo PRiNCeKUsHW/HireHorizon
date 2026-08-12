@@ -1,28 +1,129 @@
 # HireHorizon
 
-A small Flask job board — *Where Opportunities Meet Ambition*. An admin posts job openings
-(company, role, image, details with an application link); registered users browse them and
-leave comments.
+**Where Ideas Find Their Horizon.**
 
-**Stack:** Flask · SQLAlchemy 2.0 · Flask-Login · Flask-WTF · Flask-CKEditor ·
-Bootstrap-Flask · Flask-Gravatar. Postgres in production, SQLite locally.
+A text-first social blogging platform built with Django — the rhythm of a social
+feed (follow, like, reply, repost, message) with room to write something longer
+than a status update.
+
+**HireHorizon accepts no image uploads anywhere.** Not on posts, not on comments,
+not on profiles. Avatars are rendered from initials in CSS. That is a product
+decision, and it also removes an entire class of security and moderation problems.
+
+---
+
+## Quick start
+
+```bash
+python -m venv .venv
+source .venv/bin/activate          # Windows: .venv\Scripts\activate
+pip install -r requirements.txt
+
+cp .env.example .env               # optional for local dev
+python manage.py migrate
+python manage.py createsuperuser
+python manage.py runserver
+```
+
+Open <http://127.0.0.1:8000>. The admin is at `/admin/`.
+
+## Features
+
+| Area | What you get |
+|---|---|
+| Posts | Title + long-form body, slugs, draft/published, edit, delete |
+| Feed | Posts from people you follow, plus your own, paginated |
+| Social | Follow/unfollow, like, comment (with replies), repost, bookmark |
+| Mentions | `@username` links to the profile and notifies that user |
+| Messaging | Private text conversations, participants only |
+| Notifications | Follows, likes, comments, replies, mentions, reposts, messages |
+| Search | People and posts, in separate tabs |
+| Explore | Trending (7-day engagement), Latest, People to follow |
+| Contact | Saves to the database and appears in the admin — no email involved |
+
+## Project layout
+
+```
+config/           settings, root URLs, WSGI
+apps/accounts/    custom User, Follow, auth + profile views
+apps/blog/        Post, Comment, Like, Bookmark, Repost, PostView
+apps/messaging/   Conversation, ConversationParticipant, Message
+apps/notifications/  Notification (generic relation to any target)
+apps/core/        landing/feed/explore/search/contact, error handlers, utils
+templates/        server-rendered templates, mobile-first
+static/           one stylesheet, one small JS file, no build step
+```
+
+## URLs
+
+```
+/                      landing (anonymous) or your feed (signed in)
+/explore/  /search/  /about/  /contact/
+/login/  /register/  /logout/
+/settings/  /settings/profile/  /settings/password/
+/post/create/  /post/<slug>/  /post/<slug>/edit/  /post/<slug>/delete/
+/@<username>/  /@<username>/followers/  /@<username>/following/
+/notifications/  /messages/  /messages/<id>/  /bookmarks/
+```
+
+## Configuration
+
+Everything is environment-driven; see `.env.example`. Nothing is hardcoded and
+there are no SMTP settings, because the app sends no email.
+
+| Variable | Default | Notes |
+|---|---|---|
+| `SECRET_KEY` | generated in DEBUG | **Required** when `DEBUG=False` — the app refuses to start without it |
+| `DEBUG` | `True` | Set `False` for anything reachable by other people |
+| `ALLOWED_HOSTS` | `*` in DEBUG | Comma-separated. Required when `DEBUG=False` |
+| `CSRF_TRUSTED_ORIGINS` | empty | Needed behind HTTPS or a tunnel; include the scheme |
+| `DATABASE_URL` | SQLite | e.g. `postgres://user:pass@host:5432/db` |
+| `HTTPS_ENABLED` | `False` | Only `True` when actually served over TLS |
+| `PAGE_SIZE` | `20` | Items per page |
+
+Generate a key with `python manage.py generate_secret_key`.
+
+## Superuser and admin
+
+```bash
+python manage.py createsuperuser
+```
+
+Every model is registered with list displays, filters and search: Users, Follows,
+Posts, Comments, Likes, Bookmarks, Reposts, PostViews, Conversations, Messages,
+Notifications and Contact Messages.
+
+There is **no email-based password reset**, because there is no mail backend. To
+reset a password: `python manage.py changepassword <username>`.
+
+## Migrating from the old Flask version
+
+The pre-Django app stored data in `instance/posts.db`. To bring it across:
+
+```bash
+python manage.py import_legacy --dry-run    # see what would happen
+python manage.py import_legacy
+```
+
+Posts and comments transfer intact; the old `subtitle` is folded into the body
+and the `img_url` column is dropped, since the app is text-only now. **Passwords
+cannot transfer** — the Flask app used Werkzeug's hash format, which Django's
+hashers do not understand — so imported accounts get an unusable password and
+need `changepassword`.
 
 ---
 
 ## Running on Termux (Android)
 
-The app runs on your phone and is reachable from any device on the same Wi-Fi.
-
 ### 1. Install the system packages
 
 ```bash
 pkg update && pkg upgrade
-pkg install python clang binutils git
-pkg install termux-api        # optional: wake-lock and Wi-Fi IP lookup
+pkg install python git
+pkg install termux-api        # optional: wake-lock and Wi-Fi IP detection
 ```
 
-`clang` is not optional — SQLAlchemy pulls in `greenlet` on ARM64, and it has no Android
-wheel, so pip has to compile it.
+No compiler is needed: nothing in `requirements-termux.txt` has a C extension.
 
 ### 2. Clone and start
 
@@ -32,142 +133,125 @@ cd HireHorizon
 bash run.sh
 ```
 
-`run.sh` creates a virtualenv, installs `requirements-termux.txt`, takes a wake-lock, and
-serves the app with gunicorn on port 8000. The first run takes a few minutes while greenlet
-compiles.
+`run.sh` creates the virtualenv, installs dependencies, runs migrations, detects
+the phone's Wi-Fi address and prints the exact URL to open:
 
-### 3. Open it
-
-On the phone itself: <http://localhost:8000>
-
-From a laptop or another phone on the same Wi-Fi, you need the phone's LAN IP. `ip addr` is
-usually blocked for unprivileged apps on Android 10+, so use either:
-
-```bash
-termux-wifi-connectioninfo   # read the "ip" field (needs termux-api)
+```
+  On this phone:     http://localhost:8000
+  On other devices:  http://192.168.1.37:8000
 ```
 
-...or just check **Settings → Wi-Fi → your network → IP address**. Then browse to
-`http://<that-ip>:8000`.
+Create your admin account with `python manage.py createsuperuser` once the
+virtualenv exists (`source .venv/bin/activate` first).
 
-If the phone answers on `localhost` but nothing else on the network can reach it, the cause
-is almost always **client isolation / AP isolation** on your router, not the app.
+### 3. Keeping it running
 
-### 4. Admin account
+- **Battery optimization** — exempt Termux in Android settings, or the OS kills it.
+- **Wake-lock** — `run.sh` calls `termux-wake-lock` when termux-api is installed.
+- **On boot** — install Termux:Boot and put `bash ~/HireHorizon/run.sh` in `~/.termux/boot/`.
+- **Stable address** — a DHCP reservation on your router keeps the IP from moving.
 
-`admin_only` in `main.py` hardcodes **user id 1** — whoever registers first owns the site.
+### Other devices can't reach it
 
-The repo ships a populated `instance/posts.db` whose id 1 is `admin@gmail.com`. If you don't
-know that password, delete the file before the first run:
+Work down this list; the first two cover almost every case.
 
-```bash
-rm instance/posts.db
-```
+1. **Wrong address.** Use the one `run.sh` prints, and include the `http://`
+   prefix — some browsers treat `192.168.1.37:8000` as a search term.
+2. **Different subnet.** Compare the first three numbers of both devices' IPs
+   (`192.168.1.x` vs `192.168.0.x`). A guest network, or 2.4GHz and 5GHz exposed
+   as separate SSIDs, puts them on networks that cannot reach each other. Join
+   both devices to the same SSID.
+3. **AP / client isolation.** Same subnet but the connection times out: many
+   routers block client-to-client traffic, especially on guest networks. Turn off
+   "AP isolation" / "client isolation" in the router admin page.
+4. **`DisallowedHost` error.** Add the phone's IP to `ALLOWED_HOSTS` in `.env`.
+   `run.sh` does this automatically when it can detect the IP.
 
-The schema is recreated on startup, and the first account you register becomes the admin.
-
-### 5. Keeping it running
-
-- **Wake-lock** — `run.sh` calls `termux-wake-lock` automatically when termux-api is installed.
-- **Battery optimization** — exempt Termux in Android settings, or the OS will kill it.
-- **Start on boot** — install the [Termux:Boot](https://wiki.termux.com/wiki/Termux:Boot)
-  addon and put a script in `~/.termux/boot/` that runs `bash ~/HireHorizon/run.sh`.
-- **Stable address** — the IP changes between networks. A DHCP reservation on your router
-  pins it so you don't have to look it up again.
-
-### Troubleshooting
-
-**`AssertionError: ... directly inherits TypingOnly but has additional attributes
-{'__firstlineno__', '__static_attributes__'}`.** SQLAlchemy older than 2.0.30 cannot be
-imported on Python 3.13, which is what Termux ships. The requirements already pin past it,
-so this means the venv has a stale version — rebuild it:
-
-```bash
-rm -rf .venv && bash run.sh
-```
-
-**gunicorn misbehaves.** Fall back to the Flask dev server, which binds the same way:
-
-```bash
-. .venv/bin/activate && python main.py
-```
-
-**Every job you post shows up as a git diff.** `instance/posts.db` is a tracked file. To stop
-that: `git rm --cached instance/posts.db` and add `instance/` to `.gitignore`. Note that
-afterwards a fresh clone starts with an empty database.
+The failure mode tells you which: **timed out** means nothing answered (isolation
+or wrong subnet); **connection refused** means something answered and declined
+(wrong port, or that IP is a different device).
 
 ---
 
-## Configuration
+## 127.0.0.1 vs 0.0.0.0 vs the public Internet
 
-Everything is optional — the app boots with no `.env` at all.
+These are three different things, and only the first two are about binding.
 
-| Variable | Default | Purpose |
+- **`127.0.0.1:8000`** — the loopback interface. Reachable *only from the phone
+  itself*. Nothing else on your Wi-Fi can connect, by design.
+- **`0.0.0.0:8000`** — every network interface on the device. Now any device
+  **on the same local network** can reach it at the phone's LAN IP. This is what
+  `run.sh` uses.
+- **The public Internet** — binding to `0.0.0.0` does **not** provide this.
+
+Your phone sits behind your router's NAT and behind your mobile carrier's
+network. Machines on the Internet have no route to it. Binding to `0.0.0.0`
+changes nothing about that; it only widens which *local* interfaces are served.
+
+To let someone outside your Wi-Fi reach the app you need one of:
+
+| Option | How it works | Trade-off |
 |---|---|---|
-| `secret_key` | random per restart | Flask session/CSRF key. Set it so logins survive a restart. |
-| `DB_URI` | `sqlite:///posts.db` | Database URL. Set to a Postgres URL in production. |
-| `HOST` | `0.0.0.0` | Bind address for `python main.py`. Use `127.0.0.1` for phone-only access. |
-| `PORT` | `8000` | Port to listen on. Termux is unprivileged, so keep it above 1024. |
-| `own_email` / `own_password` | unset | Gmail address and app password for the contact form. Unset means submissions are silently skipped rather than erroring. |
+| **Tunnel** (Cloudflare Tunnel, ngrok, tailscale funnel) | An outbound connection from the phone to a relay; the relay gives you a public HTTPS URL | Easiest and safest — no inbound ports opened. URL may rotate on the free tiers |
+| **Port forwarding** | Router forwards an external port to the phone | Exposes the phone directly. Needs a static/dynamic-DNS address, and many ISPs use CGNAT which makes it impossible |
+| **VPS / hosting** | Run Django on a rented server instead | Costs money, but is the right answer for anything real |
+| **Tailscale / WireGuard** | Private network between your own devices | Only people you invite can reach it — ideal for personal use |
 
-Put them in a `.env` file in the project root; it is gitignored.
+### Before you expose it to anyone
 
-## Production deploy
+Exposing a phone to the Internet is a real security decision, not a checkbox:
 
-`requirements.txt` (with `psycopg2-binary`) and the `Procfile` target a Render/Heroku-style
-host running `gunicorn main:app`. Set `DB_URI` and `secret_key` there.
+- Set `DEBUG=False` and a real `SECRET_KEY`. With `DEBUG=True`, Django serves a
+  full traceback with settings and local variables to anyone who triggers an error.
+- Set `ALLOWED_HOSTS` to the exact hostname, not `*`.
+- Set `CSRF_TRUSTED_ORIGINS` to the public origin, including `https://`.
+- Set `HTTPS_ENABLED=True` **only** once traffic really is HTTPS end to end
+  (tunnels give you this; plain port forwarding does not). Over plain HTTP it
+  forces a redirect loop and the site becomes unreachable.
+- Your phone becomes a server: it is reachable by scanners within minutes of
+  going public, it has no firewall in front of it, and everything in the database
+  — including private messages — is only as protected as this app's code.
+- `runserver` is a development server. For real exposure use gunicorn:
+  `gunicorn config.wsgi:application --bind 0.0.0.0:8000`.
 
-## Access control
+Prefer a tunnel over port forwarding, and prefer a VPS over both if the site
+matters.
 
-Admin is **user id 1** — whoever registers first. `admin_only` guards `/new-post`,
-`/edit-post/<id>` and `/delete/<id>`: anonymous visitors are redirected to the login page,
-signed-in non-admins get a 403.
+---
 
-`/delete/<id>` is POST-only and rendered as a form, so it can't be triggered by a link
-prefetcher. CSRF protection is app-wide (`CSRFProtect`), which means any hand-written
-`<form method="post">` you add needs a token:
+## Production notes
 
-```html
-<input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-```
+With `DEBUG=False`:
 
-Forms rendered through bootstrap-flask's `render_form` already include one.
-
-## Content sanitising
-
-CKEditor only strips markup in the browser, so anything POSTed straight to a route arrives
-unfiltered. Post bodies and comments are both run through `bleach` on save **and** on render
-(the `safe_post` / `safe_comment` Jinja filters), so rows written before this was added are
-cleaned on the way out too. Comments get the narrower allowlist — basic formatting and links,
-no images or headings.
-
-If you add a template that renders user content, use those filters. Never `|safe`.
-
-## Upgrading an existing database
-
-`db.create_all()` only creates missing tables; it will not alter one that already exists. A
-database created before the `unique=True` was dropped from `BlogPost.title` still rejects two
-posts with the same job title.
-
-**Postgres:**
-
-```sql
-ALTER TABLE blog_posts DROP CONSTRAINT blog_posts_title_key;
-```
-
-**SQLite** — the constraint is baked into the table, so it has to be rebuilt:
+- WhiteNoise serves the compressed, hashed static files — run `collectstatic` first.
+- `SECRET_KEY` and `ALLOWED_HOSTS` are mandatory.
+- `python manage.py check --deploy` is clean once `HTTPS_ENABLED=True`.
 
 ```bash
-sqlite3 instance/posts.db "ALTER TABLE blog_posts RENAME TO blog_posts_old;"
-python -c "import main"   # recreates blog_posts without the constraint
-sqlite3 instance/posts.db "INSERT INTO blog_posts SELECT * FROM blog_posts_old; DROP TABLE blog_posts_old;"
+DEBUG=False SECRET_KEY=... ALLOWED_HOSTS=example.com python manage.py collectstatic --noinput
+gunicorn config.wsgi:application --bind 0.0.0.0:8000
 ```
 
-Starting from a fresh database (`rm instance/posts.db`) needs none of this. The cascade-delete
-change is ORM-level, so it applies to existing databases with no migration.
+## Tests
 
-## Known issues
+```bash
+python manage.py test
+```
 
-- Commenting on a post doesn't redirect after the insert, so refreshing the page posts the
-  comment again.
-- Anyone who registers can comment; there is no moderation or rate limiting.
+68 tests cover authentication, post ownership, the view-count rule, likes,
+follows (including database-level duplicate and self-follow prevention),
+comments, message privacy, bookmarks, contact submissions, notifications and
+template escaping.
+
+## Security posture
+
+- CSRF protection on every mutating route; state changes are POST-only.
+- Object-level ownership checks in the view layer, so hiding a button in a
+  template is never the only protection.
+- Private messages are readable only by conversation participants.
+- All user text is escaped by Django's template autoescaping; the `@mention`
+  linkifier escapes **before** inserting links.
+- Database constraints enforce the rules that matter: one like per user per post,
+  one view per user per post, no duplicate or self-follows.
+- No file uploads at all, so there is no upload attack surface.
+- Login errors do not reveal whether a username exists.

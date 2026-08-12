@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}Edit reply — HireHorizon{% endblock %}
+{% block content %}
+<div class="pagehead"><h1 class="pagehead__title">Edit reply</h1></div>
+<section class="card">
+  <form method="post" class="form" novalidate>
+    {% csrf_token %}
+    <div class="field">
+      {{ form.body }}
+      {% for error in form.body.errors %}<small class="field__error">{{ error }}</small>{% endfor %}
+    </div>
+    <div class="form__actions">
+      <button class="btn btn--primary" type="submit">Save</button>
+      <a class="btn btn--ghost" href="{{ comment.post.get_absolute_url }}">Cancel</a>
+    </div>
+  </form>
+</section>
+{% endblock %}

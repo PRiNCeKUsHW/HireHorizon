@@ -1,0 +1,18 @@
+{% if page_obj.has_other_pages %}
+  {% comment %}Preserve the current query string (tab, q) across pages.{% endcomment %}
+  <nav class="pager" aria-label="Pagination">
+    {% if page_obj.has_previous %}
+      <a class="btn btn--ghost" href="?{% if request.GET.q %}q={{ request.GET.q|urlencode }}&amp;{% endif %}{% if request.GET.tab %}tab={{ request.GET.tab|urlencode }}&amp;{% endif %}page={{ page_obj.previous_page_number }}">Newer</a>
+    {% else %}
+      <span class="btn btn--ghost is-disabled" aria-disabled="true">Newer</span>
+    {% endif %}
+
+    <span class="pager__status muted">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+
+    {% if page_obj.has_next %}
+      <a class="btn btn--ghost" href="?{% if request.GET.q %}q={{ request.GET.q|urlencode }}&amp;{% endif %}{% if request.GET.tab %}tab={{ request.GET.tab|urlencode }}&amp;{% endif %}page={{ page_obj.next_page_number }}">Older</a>
+    {% else %}
+      <span class="btn btn--ghost is-disabled" aria-disabled="true">Older</span>
+    {% endif %}
+  </nav>
+{% endif %}

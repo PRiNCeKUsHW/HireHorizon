@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Join HireHorizon{% endblock %}
+{% block content %}
+<div class="pagehead"><h1 class="pagehead__title">Join HireHorizon</h1></div>
+<section class="card">
+  <p class="muted">Where Ideas Find Their Horizon.</p>
+  <form method="post" class="form" novalidate>
+    {% csrf_token %}
+    {% if form.non_field_errors %}<div class="flash flash--error">{{ form.non_field_errors }}</div>{% endif %}
+    {% for field in form %}
+      <div class="field">
+        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+        {{ field }}
+        {% if field.help_text %}<small class="muted">{{ field.help_text|safe }}</small>{% endif %}
+        {% for error in field.errors %}<small class="field__error">{{ error }}</small>{% endfor %}
+      </div>
+    {% endfor %}
+    <button class="btn btn--primary btn--block" type="submit">Create account</button>
+  </form>
+  <p class="muted">Already have an account? <a href="{% url 'accounts:login' %}">Log in</a>.</p>
+</section>
+{% endblock %}
