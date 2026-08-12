@@ -26,7 +26,7 @@
   <div class="container px-4 px-lg-5">
     <div class="row gx-4 gx-lg-5 justify-content-center">
       <div class="col-md-10 col-lg-8 col-xl-7">
-        {{ post.body|safe }}
+        {{ post.body|safe_post }}
         <!--Only show Edit Post button if user id is 1 (admin user) -->
         {% if current_user.is_authenticated and current_user.id == 1 %}
         <div class="d-flex justify-content-end mb-4">
@@ -56,7 +56,7 @@
                 />
               </div>
               <div class="commentText">
-                {{comment.text|safe}}
+                {{comment.text|safe_comment}}
                 <span class="sub-text">{{comment.comment_author.name}}</span>
               </div>
             </li>

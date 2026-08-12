@@ -16,3 +16,5 @@ flask_sqlalchemy==3.1.1
 SQLAlchemy==2.0.25
 gunicorn==21.2.0
 python-dotenv
+# Pure Python, so it installs on Termux without a Rust/C toolchain.
+bleach==6.4.0

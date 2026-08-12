@@ -129,6 +129,39 @@ prefetcher. CSRF protection is app-wide (`CSRFProtect`), which means any hand-wr
 
 Forms rendered through bootstrap-flask's `render_form` already include one.
 
+## Content sanitising
+
+CKEditor only strips markup in the browser, so anything POSTed straight to a route arrives
+unfiltered. Post bodies and comments are both run through `bleach` on save **and** on render
+(the `safe_post` / `safe_comment` Jinja filters), so rows written before this was added are
+cleaned on the way out too. Comments get the narrower allowlist — basic formatting and links,
+no images or headings.
+
+If you add a template that renders user content, use those filters. Never `|safe`.
+
+## Upgrading an existing database
+
+`db.create_all()` only creates missing tables; it will not alter one that already exists. A
+database created before the `unique=True` was dropped from `BlogPost.title` still rejects two
+posts with the same job title.
+
+**Postgres:**
+
+```sql
+ALTER TABLE blog_posts DROP CONSTRAINT blog_posts_title_key;
+```
+
+**SQLite** — the constraint is baked into the table, so it has to be rebuilt:
+
+```bash
+sqlite3 instance/posts.db "ALTER TABLE blog_posts RENAME TO blog_posts_old;"
+python -c "import main"   # recreates blog_posts without the constraint
+sqlite3 instance/posts.db "INSERT INTO blog_posts SELECT * FROM blog_posts_old; DROP TABLE blog_posts_old;"
+```
+
+Starting from a fresh database (`rm instance/posts.db`) needs none of this. The cascade-delete
+change is ORM-level, so it applies to existing databases with no migration.
+
 ## Known issues
 
 - Commenting on a post doesn't redirect after the insert, so refreshing the page posts the

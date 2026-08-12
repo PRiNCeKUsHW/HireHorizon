@@ -13,6 +13,9 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy.orm import relationship
 from forms import CreatePostForm, RegisterForm, LoginForm, CommentForm
 
+import bleach
+from markupsafe import Markup
+
 import smtplib
 
 
@@ -32,6 +35,57 @@ ckeditor = CKEditor(app)
 Bootstrap5(app)
 # Covers the hand-written forms too, not just the FlaskForm ones
 csrf = CSRFProtect(app)
+
+
+# HTML SANITISING
+# CKEditor only strips tags in the browser, so anything POSTed directly to a
+# route arrives unfiltered. Post bodies are admin-authored and may carry
+# formatting and images; comments come from any registered user and get a much
+# narrower allowlist.
+POST_TAGS = [
+    "p", "br", "hr", "div", "span", "blockquote", "pre", "code",
+    "strong", "b", "em", "i", "u", "s", "sub", "sup",
+    "h1", "h2", "h3", "h4", "h5", "h6",
+    "ul", "ol", "li", "a", "img",
+    "table", "thead", "tbody", "tr", "th", "td",
+]
+POST_ATTRS = {
+    "a": ["href", "title", "target", "rel"],
+    "img": ["src", "alt", "title", "width", "height"],
+}
+COMMENT_TAGS = [
+    "p", "br", "blockquote", "code", "pre",
+    "strong", "b", "em", "i", "u", "s",
+    "ul", "ol", "li", "a",
+]
+COMMENT_ATTRS = {"a": ["href", "title"]}
+ALLOWED_PROTOCOLS = ["http", "https", "mailto"]
+
+
+def sanitize_html(html, tags, attributes):
+    """Strip any markup that isn't on the allowlist."""
+    return bleach.clean(
+        html or "",
+        tags=set(tags),
+        attributes=attributes,
+        protocols=ALLOWED_PROTOCOLS,
+        strip=True,
+    )
+
+
+def sanitize_post_body(html):
+    return sanitize_html(html, POST_TAGS, POST_ATTRS)
+
+
+def sanitize_comment(html):
+    return sanitize_html(html, COMMENT_TAGS, COMMENT_ATTRS)
+
+
+# Templates call these instead of |safe, so rows written before sanitising was
+# added are cleaned on the way out too. Markup marks the result as already
+# escaped, otherwise autoescaping would show the tags as text.
+app.jinja_env.filters["safe_post"] = lambda html: Markup(sanitize_post_body(html))
+app.jinja_env.filters["safe_comment"] = lambda html: Markup(sanitize_comment(html))
 
 # Configure Flask-Login
 login_manager = LoginManager()
@@ -74,13 +128,17 @@ class BlogPost(db.Model):
     author_id: Mapped[int] = mapped_column(Integer, db.ForeignKey("users.id"))
     # Create reference to the User object. The "posts" refers to the posts property in the User class.
     author = relationship("User", back_populates="posts")
-    title: Mapped[str] = mapped_column(String(250), unique=True, nullable=False)
+    # Not unique: two companies can legitimately post the same job title.
+    title: Mapped[str] = mapped_column(String(250), nullable=False)
     subtitle: Mapped[str] = mapped_column(String(250), nullable=False)
     date: Mapped[str] = mapped_column(String(250), nullable=False)
     body: Mapped[str] = mapped_column(Text, nullable=False)
     img_url: Mapped[str] = mapped_column(String(250), nullable=False)
-    # Parent relationship to the comments
-    comments = relationship("Comment", back_populates="parent_post")
+    # Parent relationship to the comments. Deleting a post takes its comments
+    # with it, instead of leaving rows pointing at a post that no longer exists.
+    comments = relationship(
+        "Comment", back_populates="parent_post", cascade="all, delete-orphan"
+    )
 
 
 # Create a User table for all your registered users
@@ -92,9 +150,13 @@ class User(UserMixin, db.Model):
     name: Mapped[str] = mapped_column(String(100))
     # This will act like a list of BlogPost objects attached to each User.
     # The "author" refers to the author property in the BlogPost class.
-    posts = relationship("BlogPost", back_populates="author")
+    posts = relationship(
+        "BlogPost", back_populates="author", cascade="all, delete-orphan"
+    )
     # Parent relationship: "comment_author" refers to the comment_author property in the Comment class.
-    comments = relationship("Comment", back_populates="comment_author")
+    comments = relationship(
+        "Comment", back_populates="comment_author", cascade="all, delete-orphan"
+    )
 
 
 # Create a table for the comments on the blog posts
@@ -107,7 +169,7 @@ class Comment(db.Model):
     author_id: Mapped[int] = mapped_column(Integer, db.ForeignKey("users.id"))
     comment_author = relationship("User", back_populates="comments")
     # Child Relationship to the BlogPosts
-    post_id: Mapped[str] = mapped_column(Integer, db.ForeignKey("blog_posts.id"))
+    post_id: Mapped[int] = mapped_column(Integer, db.ForeignKey("blog_posts.id"))
     parent_post = relationship("BlogPost", back_populates="comments")
 
 
@@ -212,7 +274,7 @@ def show_post(post_id):
             return redirect(url_for("login"))
 
         new_comment = Comment(
-            text=comment_form.comment_text.data,
+            text=sanitize_comment(comment_form.comment_text.data),
             comment_author=current_user,
             parent_post=requested_post
         )
@@ -230,7 +292,7 @@ def add_new_post():
         new_post = BlogPost(
             title=form.title.data,
             subtitle=form.subtitle.data,
-            body=form.body.data,
+            body=sanitize_post_body(form.body.data),
             img_url=form.img_url.data,
             author=current_user,
             date=date.today().strftime("%B %d, %Y")
@@ -257,8 +319,7 @@ def edit_post(post_id):
         post.title = edit_form.title.data
         post.subtitle = edit_form.subtitle.data
         post.img_url = edit_form.img_url.data
-        post.author = current_user
-        post.body = edit_form.body.data
+        post.body = sanitize_post_body(edit_form.body.data)
         db.session.commit()
         return redirect(url_for("show_post", post_id=post.id))
     return render_template("make-post.html", form=edit_form, is_edit=True, current_user=current_user)
