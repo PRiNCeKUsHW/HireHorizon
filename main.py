@@ -13,8 +13,6 @@ from sqlalchemy.orm import relationship
 from forms import CreatePostForm, RegisterForm, LoginForm, CommentForm
 
 import smtplib
-from smtplib import SMTPException
-from socket import timeout
 
 
 import os
@@ -26,7 +24,9 @@ load_dotenv()
 
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = os.getenv('secret_key')
+# Falls back to a throwaway key so the app boots without a .env. Sessions are
+# dropped on every restart until 'secret_key' is set.
+app.config['SECRET_KEY'] = os.getenv('secret_key') or os.urandom(24).hex()
 ckeditor = CKEditor(app)
 Bootstrap5(app)
 
@@ -55,7 +55,8 @@ gravatar = Gravatar(app,
 # CREATE DATABASE
 class Base(DeclarativeBase):
     pass
-app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DB_URI')
+# Postgres in production via DB_URI, local SQLite (in instance/) when it's unset.
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DB_URI') or 'sqlite:///posts.db'
 db = SQLAlchemy(model_class=Base)
 db.init_app(app)
 
@@ -279,14 +280,25 @@ def contact():
 
 
 def send_email(name, email, phone, message):
+    own_email = os.getenv('own_email')
+    own_password = os.getenv('own_password')
+    if not (own_email and own_password):
+        print("Email is not configured (own_email/own_password), skipping send.")
+        return
+
     email_message = f"Subject:Blog WEB message\n\nName: {name}\nEmail: {email}\nPhone: {phone}\nMessage: {message}"
     try:
         with smtplib.SMTP("smtp.gmail.com", 587, timeout=10) as connection:
             connection.starttls()
-            connection.login(os.getenv('own_email'), os.getenv('own_password'))
-            connection.sendmail(os.getenv('own_email'), os.getenv('own_email'), email_message)
-    except (timeout, SMTPException) as e:
+            connection.login(own_email, own_password)
+            connection.sendmail(own_email, own_email, email_message)
+    except Exception as e:
         print(f"An error occurred: {e}")
 
 if __name__ == "__main__":
-    app.run(debug=False)
+    # 0.0.0.0 makes the app reachable from other devices on the same Wi-Fi.
+    app.run(
+        host=os.getenv("HOST", "0.0.0.0"),
+        port=int(os.getenv("PORT", 8000)),
+        debug=False
+    )
