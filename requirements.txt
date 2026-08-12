@@ -5,6 +5,10 @@ whitenoise>=6.7
 python-dotenv>=1.0
 gunicorn>=22.0
 
+# Time zone database. Required on any host without system zoneinfo — Android
+# (Termux) and most slim/Alpine containers. Harmless elsewhere.
+tzdata>=2024.1
+
 # Postgres driver, for deployments that set DATABASE_URL. Do not install this
 # on Termux: there is no Android wheel, and SQLite is used there instead.
 # Termux should install requirements-termux.txt, which omits this line.

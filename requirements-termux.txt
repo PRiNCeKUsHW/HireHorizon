@@ -6,3 +6,8 @@ dj-database-url>=2.2
 whitenoise>=6.7
 python-dotenv>=1.0
 gunicorn>=22.0
+
+# Android has no /usr/share/zoneinfo, so Python's zoneinfo has no system time
+# zone data to read and USE_TZ=True fails with ZoneInfoNotFoundError on every
+# page that renders a date. This package supplies the database itself.
+tzdata>=2024.1

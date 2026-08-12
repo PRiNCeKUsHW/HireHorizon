@@ -252,6 +252,55 @@ class CommentTests(TestCase):
         self.assertEqual(response.status_code, 404)
 
 
+class PaginationOrderingTests(TestCase):
+    """Paginated querysets must be ordered.
+
+    with_counts() adds aggregates, and a queryset carrying a GROUP BY reports
+    itself as unordered even though Meta.ordering still applies. Paginator
+    warns about that, so for_feed() sets the ordering explicitly.
+    """
+
+    def test_for_feed_is_ordered(self):
+        self.assertTrue(Post.objects.for_feed().ordered)
+
+    def test_paginated_views_emit_no_unordered_warning(self):
+        import warnings
+
+        from django.core.paginator import UnorderedObjectListWarning
+
+        alice = User.objects.create_user("alice", password="pw-alice-123")
+        for i in range(3):
+            Post.objects.create(author=alice, title=f"Post {i}", content="body")
+
+        self.client.force_login(alice)
+        with warnings.catch_warnings():
+            warnings.simplefilter("error", UnorderedObjectListWarning)
+            for url in ["/", "/explore/", "/@alice/", "/bookmarks/", "/post/mine/"]:
+                self.assertEqual(self.client.get(url).status_code, 200, url)
+
+
+class TimeZoneTests(TestCase):
+    """Rendering a date must not depend on system time zone files.
+
+    Android has no /usr/share/zoneinfo, so without the tzdata package every
+    page showing a timestamp raised ZoneInfoNotFoundError on Termux.
+    """
+
+    def test_tzdata_package_is_available(self):
+        import zoneinfo
+
+        from django.conf import settings
+
+        import tzdata  # noqa: F401  — must be installed, not just importable via OS
+
+        self.assertIsNotNone(zoneinfo.ZoneInfo(settings.TIME_ZONE))
+
+    def test_post_detail_renders_timestamps(self):
+        alice = User.objects.create_user("alice", password="pw-alice-123")
+        post = Post.objects.create(author=alice, title="Dated", content="x")
+        self.assertEqual(self.client.get(post.get_absolute_url()).status_code, 200)
+
+
 class XssTests(TestCase):
     def test_post_content_is_escaped(self):
         alice = User.objects.create_user("alice", password="pw-alice-123")

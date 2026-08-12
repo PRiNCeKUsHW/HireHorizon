@@ -20,8 +20,14 @@ class PostQuerySet(models.QuerySet):
         )
 
     def for_feed(self):
-        """Everything a post card renders, without N+1 queries."""
-        return self.select_related("author").with_counts()
+        """Everything a post card renders, without N+1 queries.
+
+        Ordering is explicit rather than inherited from Meta: with_counts()
+        adds aggregates, and a queryset carrying a GROUP BY reports itself as
+        unordered, which makes Paginator warn about inconsistent pages.
+        Callers that want a different order just chain their own order_by().
+        """
+        return self.select_related("author").with_counts().order_by("-created_at")
 
 
 class Post(models.Model):
