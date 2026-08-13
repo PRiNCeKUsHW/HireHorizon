@@ -9,10 +9,12 @@ from django.db.models import Count, Q
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse_lazy
+from django.utils.decorators import method_decorator
 from django.views.decorators.http import require_POST
 
 from apps.blog.models import Comment, Post
 from apps.blog.views import annotate_for_viewer
+from apps.core.ratelimit import rate_limit
 from apps.notifications.models import Notification
 
 from .forms import LoginForm, ProfileForm, RegisterForm
@@ -21,6 +23,9 @@ from .models import Follow
 User = get_user_model()
 
 
+# 10 attempts / 5 minutes per IP: generous enough for someone who mistypes a
+# password a few times, tight enough to slow credential stuffing.
+@method_decorator(rate_limit("login", limit=10, window_seconds=300), name="post")
 class HireHorizonLoginView(LoginView):
     template_name = "accounts/login.html"
     authentication_form = LoginForm
@@ -40,6 +45,9 @@ class HireHorizonPasswordChangeView(PasswordChangeView):
         return super().form_valid(form)
 
 
+# 5 registrations / hour per IP: creating accounts should be rare traffic,
+# so this mainly exists to blunt scripted sign-up spam.
+@rate_limit("register", limit=5, window_seconds=3600)
 def register(request):
     if request.user.is_authenticated:
         return redirect("core:home")

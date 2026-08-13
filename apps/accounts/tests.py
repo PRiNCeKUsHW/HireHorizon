@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user_model
+from django.core.cache import cache
 from django.db import IntegrityError, transaction
 from django.test import TestCase
 from django.urls import reverse
@@ -9,6 +10,13 @@ User = get_user_model()
 
 
 class AuthTests(TestCase):
+    def setUp(self):
+        # The test client reuses the same REMOTE_ADDR for every test, and the
+        # rate-limit cache persists across the whole test run, so a stale
+        # counter left by an earlier test could make an unrelated test start
+        # returning 429 here.
+        cache.clear()
+
     def test_registration_creates_and_logs_in_user(self):
         response = self.client.post(
             reverse("accounts:register"),
@@ -137,3 +145,106 @@ class FollowTests(TestCase):
         self.assertContains(response, "@alice")
         response = self.client.get(reverse("accounts:following", args=["alice"]))
         self.assertContains(response, "@bob")
+
+
+class LoginRateLimitTests(TestCase):
+    """Login is limited to 10 POSTs / 5 minutes per IP (accounts/views.py)."""
+
+    def setUp(self):
+        cache.clear()
+        User.objects.create_user("alice", password="pw-alice-123")
+
+    def test_get_is_never_throttled(self):
+        for _ in range(15):
+            self.assertEqual(self.client.get(reverse("accounts:login")).status_code, 200)
+
+    def test_blocks_after_limit_then_recovers_for_a_different_ip(self):
+        for _ in range(10):
+            response = self.client.post(
+                reverse("accounts:login"), {"username": "alice", "password": "wrong"}
+            )
+            self.assertEqual(response.status_code, 200)
+
+        blocked = self.client.post(
+            reverse("accounts:login"), {"username": "alice", "password": "wrong"}
+        )
+        self.assertEqual(blocked.status_code, 429)
+
+        # A legitimate login from the same (blocked) IP is refused too --
+        # the limit is on attempts, not on failures specifically.
+        still_blocked = self.client.post(
+            reverse("accounts:login"), {"username": "alice", "password": "pw-alice-123"}
+        )
+        self.assertEqual(still_blocked.status_code, 429)
+
+        # A different client IP has its own, untouched quota.
+        response = self.client.post(
+            reverse("accounts:login"),
+            {"username": "alice", "password": "pw-alice-123"},
+            REMOTE_ADDR="203.0.113.9",
+        )
+        self.assertEqual(response.status_code, 302)
+
+    def test_cf_connecting_ip_is_preferred_over_remote_addr(self):
+        # Same REMOTE_ADDR throughout, but different CF-Connecting-IP values
+        # -- behind the tunnel, that's the header that identifies the real
+        # visitor, and each value must get its own quota.
+        for _ in range(10):
+            response = self.client.post(
+                reverse("accounts:login"),
+                {"username": "alice", "password": "wrong"},
+                HTTP_CF_CONNECTING_IP="198.51.100.1",
+            )
+            self.assertEqual(response.status_code, 200)
+
+        blocked = self.client.post(
+            reverse("accounts:login"),
+            {"username": "alice", "password": "wrong"},
+            HTTP_CF_CONNECTING_IP="198.51.100.1",
+        )
+        self.assertEqual(blocked.status_code, 429)
+
+        # Different CF-Connecting-IP, same REMOTE_ADDR: untouched quota.
+        response = self.client.post(
+            reverse("accounts:login"),
+            {"username": "alice", "password": "wrong"},
+            HTTP_CF_CONNECTING_IP="198.51.100.2",
+        )
+        self.assertEqual(response.status_code, 200)
+
+
+class RegisterRateLimitTests(TestCase):
+    """Register is limited to 5 POSTs / hour per IP (accounts/views.py)."""
+
+    def setUp(self):
+        cache.clear()
+
+    def test_get_is_never_throttled(self):
+        for _ in range(8):
+            self.assertEqual(self.client.get(reverse("accounts:register")).status_code, 200)
+
+    def test_blocks_after_limit(self):
+        for i in range(5):
+            response = self.client.post(
+                reverse("accounts:register"),
+                {
+                    "username": f"user{i}",
+                    "email": f"user{i}@example.com",
+                    "password1": "a-strong-pass-99",
+                    "password2": "a-strong-pass-99",
+                },
+            )
+            self.assertEqual(response.status_code, 302)
+            self.client.post(reverse("accounts:logout"))
+
+        blocked = self.client.post(
+            reverse("accounts:register"),
+            {
+                "username": "user5",
+                "email": "user5@example.com",
+                "password1": "a-strong-pass-99",
+                "password2": "a-strong-pass-99",
+            },
+        )
+        self.assertEqual(blocked.status_code, 429)
+        self.assertFalse(User.objects.filter(username="user5").exists())

@@ -15,6 +15,9 @@ staticfiles/
 .bin/
 .gunicorn.pid
 
+# Rate-limit cache (apps/core/ratelimit.py)
+.django_cache/
+
 # Secrets — never commit
 .env
 

@@ -188,6 +188,18 @@ MESSAGE_STORAGE = "django.contrib.messages.storage.session.SessionStorage"
 # Pagination size used across feeds, profiles and search.
 PAGE_SIZE = int(os.getenv("PAGE_SIZE", "20"))
 
+# File-based rather than Django's default LocMemCache: LocMemCache is
+# per-process, so under gunicorn's multiple workers (tunnel.sh runs two)
+# each worker would hand out its own separate rate-limit quota instead of
+# sharing one. A shared file on disk fixes that without adding a dependency
+# like Redis. Used by apps/core/ratelimit.py for login/register/contact.
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.filebased.FileBasedCache",
+        "LOCATION": BASE_DIR / ".django_cache",
+    }
+}
+
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,

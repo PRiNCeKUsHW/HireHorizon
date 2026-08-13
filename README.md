@@ -219,12 +219,9 @@ running — closing it (or losing the connection) takes the site down.
   to expose that one), `HTTPS_ENABLED=True` (secure cookies, HSTS, the
   Cloudflare-to-origin proto header handled correctly — verified end-to-end,
   including CSRF, against a real gunicorn instance with the exact headers
-  Cloudflare's edge sends), and `ALLOWED_HOSTS` / `CSRF_TRUSTED_ORIGINS`
-  scoped to `*.trycloudflare.com` only — not `*`.
-- **What it does *not* add**: rate limiting on login/register/contact. A
-  rotating, unguessable URL is a real deterrent, but if you post the link
-  somewhere public and it gets traffic, that's the next thing to add — ask
-  and it can be.
+  Cloudflare's edge sends), `ALLOWED_HOSTS` / `CSRF_TRUSTED_ORIGINS` scoped
+  to `*.trycloudflare.com` only — not `*` — and rate limiting on login,
+  registration and the contact form (see below).
 - **Your phone is now a server.** It needs to stay on, stay connected, and
   stay unlocked-enough to keep running. See "Keeping it running" above —
   battery optimization and Termux:Boot matter more once other people are
@@ -321,3 +318,14 @@ template escaping.
   one view per user per post, no duplicate or self-follows.
 - No file uploads at all, so there is no upload attack surface.
 - Login errors do not reveal whether a username exists.
+- Login, registration and the contact form are rate-limited per IP —
+  `apps/core/ratelimit.py`. Login allows 10 POSTs / 5 minutes; register and
+  contact allow 5 / hour. Excess requests get a 429 without reaching the view
+  at all. Behind the tunnel this reads the visitor's real IP from
+  `CF-Connecting-IP` (set by Cloudflare's edge, not spoofable by the client
+  through the tunnel); accessed directly it falls back to `REMOTE_ADDR`.
+  Counters live in a shared on-disk cache (`CACHES` in `config/settings.py`)
+  rather than Django's default in-memory cache, specifically so all of
+  `tunnel.sh`'s gunicorn workers enforce one shared limit instead of each
+  handing out its own — verified by hammering a 3-worker gunicorn instance
+  from outside and confirming exactly 5 requests got through, not 15.

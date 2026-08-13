@@ -11,6 +11,7 @@ from apps.blog.models import Post
 from apps.blog.views import annotate_for_viewer
 
 from .forms import ContactForm
+from .ratelimit import rate_limit
 
 User = get_user_model()
 
@@ -117,6 +118,9 @@ def search(request):
     )
 
 
+# 5 submissions / hour per IP: enough for a real visitor to retry a typo,
+# tight enough to blunt scripted form-spam.
+@rate_limit("contact", limit=5, window_seconds=3600)
 def contact(request):
     """Contact form. Saves to the database — the site sends no email."""
     form = ContactForm(request.POST or None)
