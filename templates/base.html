@@ -4,7 +4,8 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="description" content="{% block meta_description %}HireHorizon — where ideas find their horizon. A text-first place to write, discover and connect.{% endblock %}" />
-    <meta name="theme-color" content="#ffffff" />
+    <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#121212" media="(prefers-color-scheme: dark)" />
     <title>{% block title %}HireHorizon{% endblock %}</title>
     <link rel="icon" href="{% static 'assets/favicon.ico' %}" />
     <link rel="stylesheet" href="{% static 'css/app.css' %}" />
@@ -40,9 +41,15 @@
 
       <main class="main" id="main">
         {% if messages %}
-          <div class="flashes" role="status">
+          {% comment %}
+            Failures are announced assertively; everything else politely.
+            A single role on the wrapper would have made an error wait behind
+            whatever the screen reader was already saying.
+          {% endcomment %}
+          <div class="flashes">
             {% for message in messages %}
-              <div class="flash flash--{{ message.tags|default:'info' }}">{{ message }}</div>
+              <div class="flash flash--{{ message.tags|default:'info' }}"
+                   role="{% if message.level >= 30 %}alert{% else %}status{% endif %}">{{ message }}</div>
             {% endfor %}
           </div>
         {% endif %}

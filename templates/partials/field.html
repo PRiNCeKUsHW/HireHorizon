@@ -1,0 +1,21 @@
+{% load hh %}
+{% comment %}
+One labelled field row, shared by every form in the app.
+
+The help text and error carry ids that the widget points at through
+aria-describedby (see the a11y_field filter), so they are announced as part
+of the field rather than as loose text sitting after it. The label is
+conditional because the comment and message composers deliberately have none.
+{% endcomment %}
+<div class="field">
+  {% if field.label %}<label for="{{ field.id_for_label }}">{{ field.label }}</label>{% endif %}
+  {{ field|a11y_field }}
+  {% if field.help_text %}
+    <small class="muted" id="{{ field.auto_id }}_help">{{ field.help_text|safe }}</small>
+  {% endif %}
+  {% if field.errors %}
+    <small class="field__error" id="{{ field.auto_id }}_error">
+      {% for error in field.errors %}{{ error }}{% if not forloop.last %} {% endif %}{% endfor %}
+    </small>
+  {% endif %}
+</div>

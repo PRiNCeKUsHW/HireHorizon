@@ -8,6 +8,8 @@ class ContactForm(forms.ModelForm):
         model = ContactMessage
         fields = ("name", "email", "subject", "message")
         widgets = {
+            "name": forms.TextInput(attrs={"autocomplete": "name"}),
+            "email": forms.EmailInput(attrs={"autocomplete": "email"}),
             "message": forms.Textarea(
                 attrs={"rows": 6, "placeholder": "How can we help?"}
             ),

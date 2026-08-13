@@ -9,6 +9,29 @@
     return input ? input.value : "";
   }
 
+  /* These toggles change a count and a pressed state in place, with no page
+   * reload to announce. Without a live region a screen reader user presses
+   * Like and hears nothing at all, so every handler routes its result here. */
+  var announcer = document.createElement("div");
+  announcer.className = "sr-only";
+  announcer.setAttribute("aria-live", "polite");
+  announcer.setAttribute("role", "status");
+  // The tag is deferred, so the body is already parsed by the time this runs.
+  document.body.appendChild(announcer);
+
+  function announce(message) {
+    announcer.textContent = message;
+  }
+
+  function setBusy(button, busy) {
+    button.classList.toggle("is-busy", busy);
+    if (busy) {
+      button.setAttribute("aria-busy", "true");
+    } else {
+      button.removeAttribute("aria-busy");
+    }
+  }
+
   function post(url) {
     return fetch(url, {
       method: "POST",
@@ -42,18 +65,18 @@
 
       event.preventDefault();
       if (button.classList.contains("is-busy")) return;
-      button.classList.add("is-busy");
+      setBusy(button, true);
 
       post(button.dataset.url)
         .then(function (data) {
-          if (data) apply(button, data);
+          if (data) announce(apply(button, data));
         })
         .catch(function () {
           // Fall back to a normal navigation if the request failed.
           window.location.reload();
         })
         .finally(function () {
-          button.classList.remove("is-busy");
+          setBusy(button, false);
         });
     });
   }
@@ -65,21 +88,25 @@
     }
   }
 
+  /* Each handler returns the sentence the live region should read out. */
   wireToggle(".js-like", function (button, data) {
     button.classList.toggle("is-on", data.liked);
     button.setAttribute("aria-pressed", data.liked ? "true" : "false");
     setCount(button, ".js-like-count", data.count);
+    return data.liked ? "Liked" : "Like removed";
   });
 
   wireToggle(".js-repost", function (button, data) {
     button.classList.toggle("is-on", data.reposted);
     button.setAttribute("aria-pressed", data.reposted ? "true" : "false");
     setCount(button, ".js-repost-count", data.count);
+    return data.reposted ? "Reposted" : "Repost removed";
   });
 
   wireToggle(".js-bookmark", function (button, data) {
     button.classList.toggle("is-on", data.bookmarked);
     button.setAttribute("aria-pressed", data.bookmarked ? "true" : "false");
+    return data.bookmarked ? "Bookmarked" : "Bookmark removed";
   });
 
   /* Follow / unfollow on the profile page. */
@@ -88,7 +115,7 @@
     if (!button) return;
     event.preventDefault();
     if (button.classList.contains("is-busy")) return;
-    button.classList.add("is-busy");
+    setBusy(button, true);
 
     post(button.dataset.url)
       .then(function (data) {
@@ -97,12 +124,13 @@
         button.classList.toggle("btn--ghost", data.following);
         button.classList.toggle("btn--primary", !data.following);
         button.setAttribute("aria-pressed", data.following ? "true" : "false");
+        announce(data.following ? "Following" : "No longer following");
       })
       .catch(function () {
         window.location.reload();
       })
       .finally(function () {
-        button.classList.remove("is-busy");
+        setBusy(button, false);
       });
   });
 

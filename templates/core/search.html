@@ -7,7 +7,8 @@
 
 <form class="searchbar" method="get" role="search">
   <label class="sr-only" for="q">Search people and posts</label>
-  <input id="q" type="search" name="q" value="{{ query }}" placeholder="Search people and posts" autofocus />
+  {% comment %}No autofocus: it threw up the keyboard over the results on every mobile visit.{% endcomment %}
+  <input id="q" type="search" name="q" value="{{ query }}" placeholder="Search people and posts" enterkeyhint="search" />
   <input type="hidden" name="tab" value="{{ tab }}" />
   <button class="btn btn--primary" type="submit">Search</button>
 </form>
