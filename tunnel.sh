@@ -51,19 +51,70 @@ if [ ! -f .env ]; then
 fi
 
 # --- cloudflared -------------------------------------------------------
-CLOUDFLARED="$PWD/.bin/cloudflared"
-if [ ! -x "$CLOUDFLARED" ]; then
-    echo "Downloading cloudflared..."
-    mkdir -p .bin
-    case "$(uname -m)" in
-        aarch64|arm64) CF_ARCH="arm64" ;;
-        armv7l|armv8l) CF_ARCH="arm" ;;
-        x86_64)        CF_ARCH="amd64" ;;
-        *) echo "Unsupported architecture for cloudflared: $(uname -m)" >&2; exit 1 ;;
-    esac
-    curl -fsSL -o "$CLOUDFLARED" \
-        "https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-${CF_ARCH}"
-    chmod +x "$CLOUDFLARED"
+CLOUDFLARED=""
+
+# 1. Already on PATH (a prior `pkg install cloudflared`, or this script's own
+#    earlier run) -- always the best option, since it's a binary the package
+#    manager already knows is built correctly for this device.
+if command -v cloudflared >/dev/null 2>&1; then
+    CLOUDFLARED="$(command -v cloudflared)"
+fi
+
+# 2. Under Termux, try installing the real package before ever touching a
+#    hand-downloaded binary. Termux packages are built specifically for
+#    Android's Bionic libc and its execve() restrictions; a generic
+#    "cloudflared-linux-arm64" grabbed straight off GitHub is a normal Linux
+#    build and is not guaranteed to satisfy those -- which is exactly what
+#    produces errors like "has unexpected e_type: 2" (Android's exec layer
+#    rejecting the binary's ELF format on some devices, even though the same
+#    file runs fine on a regular Linux box).
+if [ -z "$CLOUDFLARED" ] && [ -n "${PREFIX:-}" ] && command -v pkg >/dev/null 2>&1; then
+    echo "Checking for a Termux-native cloudflared package..."
+    # Termux doesn't reliably provide /tmp, so the log stays in the project
+    # directory alongside the other run.sh/tunnel.sh logs.
+    if pkg install -y cloudflared >.cloudflared-pkg.log 2>&1; then
+        command -v cloudflared >/dev/null 2>&1 && CLOUDFLARED="$(command -v cloudflared)"
+    fi
+fi
+
+# 3. Fall back to the GitHub release binary. Installed to $PREFIX/bin (the
+#    directory Termux itself installs executables into) rather than a
+#    project-local .bin/ folder when running under Termux -- termux-exec's
+#    exec wrapper is documented to be more reliable for binaries that live
+#    there than for ones run from an arbitrary path under $HOME.
+if [ -z "$CLOUDFLARED" ]; then
+    if [ -n "${PREFIX:-}" ] && [ -d "${PREFIX}/bin" ]; then
+        CLOUDFLARED="${PREFIX}/bin/cloudflared"
+    else
+        CLOUDFLARED="$PWD/.bin/cloudflared"
+        mkdir -p .bin
+    fi
+
+    if [ ! -x "$CLOUDFLARED" ]; then
+        echo "Downloading cloudflared..."
+        case "$(uname -m)" in
+            aarch64|arm64) CF_ARCH="arm64" ;;
+            armv7l|armv8l) CF_ARCH="arm" ;;
+            x86_64)        CF_ARCH="amd64" ;;
+            *) echo "Unsupported architecture for cloudflared: $(uname -m)" >&2; exit 1 ;;
+        esac
+        curl -fsSL -o "$CLOUDFLARED" \
+            "https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-${CF_ARCH}"
+        chmod +x "$CLOUDFLARED"
+    fi
+fi
+
+# Fail loudly and specifically here, rather than letting a cryptic exec
+# error surface for the first time in the middle of the tunnel's own output.
+if ! "$CLOUDFLARED" --version >/dev/null 2>&1; then
+    echo
+    echo "cloudflared won't run on this device ($CLOUDFLARED)." >&2
+    echo "This is Android/Termux rejecting the binary's format, not a network" >&2
+    echo "problem. Things worth trying, in order:" >&2
+    echo "  1. pkg install cloudflared   (a Termux-built package, if one exists)" >&2
+    echo "  2. termux-exec: pkg install termux-exec, then restart Termux" >&2
+    echo "  3. file \"$CLOUDFLARED\"   -- share the output if you ask for help" >&2
+    exit 1
 fi
 
 echo "Applying migrations..."
