@@ -1,7 +1,17 @@
-{% comment %}Reusable empty state. Pass title, body and optionally cta_url/cta_label.{% endcomment %}
+{% comment %}
+Reusable empty state. Pass title, body and optionally cta_url/cta_label.
+
+Pass heading="h1" when this block is the page's only heading — the error
+pages are the case that matters, since they render nothing else and would
+otherwise ship with no h1 at all.
+{% endcomment %}
 <div class="empty">
   <span class="empty__mark" aria-hidden="true">◌</span>
-  <h2 class="empty__title">{{ title }}</h2>
+  {% if heading == "h1" %}
+    <h1 class="empty__title">{{ title }}</h1>
+  {% else %}
+    <h2 class="empty__title">{{ title }}</h2>
+  {% endif %}
   <p class="empty__body muted">{{ body }}</p>
   {% if cta_url %}<a class="btn btn--primary" href="{{ cta_url }}">{{ cta_label }}</a>{% endif %}
 </div>

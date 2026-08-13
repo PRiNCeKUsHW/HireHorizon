@@ -7,7 +7,12 @@
   <a class="btn btn--ghost btn--sm" href="{% url 'messaging:inbox' %}">All messages</a>
 </div>
 
-<section class="chat">
+{% comment %}
+  tabindex makes the scrollback reachable by keyboard — without it the only
+  way to read older messages was a pointer. role="log" tells a screen reader
+  this is an append-only transcript.
+{% endcomment %}
+<section class="chat" tabindex="0" role="log" aria-label="Conversation history">
   {% for message in chat_messages %}
     <div class="bubble {% if message.sender == user %}bubble--mine{% endif %}">
       <div class="bubble__body">{{ message.body|rich_text }}</div>

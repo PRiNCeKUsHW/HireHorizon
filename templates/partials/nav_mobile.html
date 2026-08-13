@@ -13,7 +13,11 @@
     </a>
     <a class="tabbar__item {% if request.resolver_match.namespace == 'notifications' %}is-active{% endif %}" href="{% url 'notifications:list' %}">
       <span aria-hidden="true">◔</span><span class="tabbar__label">Alerts</span>
-      {% if unread_notifications %}<span class="badge badge--dot"></span>{% endif %}
+      {% comment %}The dot is the visual cue; the sr-only text is the only one a screen reader gets.{% endcomment %}
+      {% if unread_notifications %}
+        <span class="badge badge--dot" aria-hidden="true"></span>
+        <span class="sr-only">, {{ unread_notifications }} unread</span>
+      {% endif %}
     </a>
     <a class="tabbar__item {% if request.resolver_match.namespace == 'messaging' %}is-active{% endif %}" href="{% url 'messaging:inbox' %}">
       <span aria-hidden="true">✉</span><span class="tabbar__label">Inbox</span>

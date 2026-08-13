@@ -33,7 +33,13 @@ class CommentForm(forms.ModelForm):
         fields = ("body",)
         widgets = {
             "body": forms.Textarea(
-                attrs={"rows": 3, "placeholder": "Add your reply…"}
+                attrs={
+                    "rows": 3,
+                    "placeholder": "Add your reply…",
+                    # The composer is deliberately unlabelled on screen, which
+                    # left the textarea with no accessible name at all.
+                    "aria-label": "Write a reply",
+                }
             )
         }
         labels = {"body": ""}

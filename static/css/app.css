@@ -6,21 +6,70 @@
  *
  * Fonts are system/substitute stacks on purpose — this app is served from a
  * phone, so no webfont request should stand between a reader and the text.
+ *
+ * Colour is two layers. The primitives below are raw values and are never
+ * used by a component directly; the semantic tokens beneath them are. That
+ * indirection is what lets the whole UI flip to a dark theme from one block.
  */
 
 :root {
-  /* Colors — the whole system is neutral plus #ff6719 */
+  color-scheme: light dark;
+
+  /* PRIMITIVES — raw values, referenced only by the semantic layer ------ */
+
+  /* The brand orange. It measures 2.91:1 on white, which is below the 4.5:1
+     floor for text and the 3:1 floor for meaningful indicators, so it is not
+     allowed to carry meaning on a light background. It survives as the brand
+     mark (a logotype, and exempt) and returns as the accent in dark mode,
+     where it measures 6.43:1. */
   --color-signal-orange: #ff6719;
-  --color-orange-press: #e85a12;
-  --color-ink: #363737;
+  /* Deep enough to clear 4.5:1 on every light surface it can land on, not
+     just on paper — an @mention inside a received chat bubble sits on
+     --surface-fill, where #c2410c would have measured 4.46:1. */
+  --color-orange-deep: #bb3f0b; /* 5.48:1 on white, 4.73:1 on #eeeeee */
+  --color-orange-deeper: #8f3a0c; /* 7.56:1 on white */
+  --color-orange-light: #ff8a4c; /* 7.21:1 on #121212 */
+
   --color-paper: #ffffff;
+  --color-ink: #363737; /* 11.94:1 on white */
   --color-charcoal: #232525;
-  --color-stone: #777777;
-  --color-ash: #b6b6b6;
+  --color-slate: #5e5e5e; /* 6.48:1 on white */
+  --color-iron: #8c8c8c; /* 3.36:1 on white — control boundaries */
   --color-mist: #c8c8c8;
   --color-cloud: #eeeeee;
-  --color-slate: #5e5e5e;
   --color-wash: #f5f5f5;
+
+  --color-night: #121212;
+  --color-night-raised: #1a1a1a;
+  --color-night-sunken: #1e1e1e;
+  --color-night-fill: #262626;
+  --color-night-line: #2b2b2b;
+  --color-night-edge: #6b6b6b; /* 3.52:1 on #121212 */
+  --color-fog: #e8e8e8; /* 15.29:1 on #121212 */
+  --color-smoke: #a8a8a8; /* 7.88:1 on #121212, 6.36:1 on #262626 */
+
+  /* SEMANTIC — light theme. Components reference only these. ----------- */
+
+  --surface-page: var(--color-paper);
+  --surface-raised: var(--color-paper);
+  --surface-sunken: var(--color-wash);
+  --surface-fill: var(--color-cloud);
+  --surface-fill-strong: var(--color-mist);
+
+  --text-primary: var(--color-ink);
+  --text-secondary: var(--color-slate);
+  --text-strong: var(--color-charcoal);
+
+  --border-hairline: var(--color-cloud);
+  --border-control: var(--color-iron);
+
+  /* --accent carries every job that needs contrast: orange text, fills that
+     hold a label, the focus ring, and active indicators. --accent-bright is
+     decoration only and nothing may depend on reading against it. */
+  --accent: var(--color-orange-deep);
+  --accent-press: var(--color-orange-deeper);
+  --accent-on: var(--color-paper);
+  --accent-bright: var(--color-signal-orange);
 
   /* Type */
   --font-ui: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
@@ -57,6 +106,7 @@
   --feed-width: 600px;
   --rail-width: 300px;
   --tabbar-h: 56px;
+  --touch-min: 44px;
 
   /* Radius — only these four values are used anywhere */
   --radius-md: 4px;
@@ -69,6 +119,36 @@
     rgba(0, 0, 0, 0.1) 0 -1px 0 0 inset;
   --shadow-float: rgba(0, 0, 0, 0.1) 0 4px 6px -1px,
     rgba(0, 0, 0, 0.06) 0 2px 4px -1px;
+
+  --speed: 0.18s;
+}
+
+/* SEMANTIC — dark theme. Only the semantic layer is reassigned, so every
+   component below inherits the theme without knowing it exists.
+   The bright brand orange comes back here: on #121212 it reads 6.43:1, and
+   its label flips to near-black rather than white. */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --surface-page: var(--color-night);
+    --surface-raised: var(--color-night-raised);
+    --surface-sunken: var(--color-night-sunken);
+    --surface-fill: var(--color-night-fill);
+    --surface-fill-strong: #363636;
+
+    --text-primary: var(--color-fog);
+    --text-secondary: var(--color-smoke);
+    --text-strong: var(--color-paper);
+
+    --border-hairline: var(--color-night-line);
+    --border-control: var(--color-night-edge);
+
+    --accent: var(--color-signal-orange);
+    --accent-press: var(--color-orange-light);
+    --accent-on: var(--color-night);
+
+    --shadow-inset: rgba(255, 255, 255, 0.12) 0 1px 0 0 inset,
+      rgba(0, 0, 0, 0.3) 0 -1px 0 0 inset;
+  }
 }
 
 *,
@@ -79,6 +159,7 @@
 
 html {
   -webkit-text-size-adjust: 100%;
+  scroll-behavior: smooth;
 }
 
 body {
@@ -86,9 +167,8 @@ body {
   font-family: var(--font-ui);
   font-size: var(--text-body);
   line-height: 1.54;
-  color: var(--color-ink);
-  background: var(--color-paper);
-  overflow-x: hidden;
+  color: var(--text-primary);
+  background: var(--surface-page);
   padding-bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom));
   -webkit-font-smoothing: antialiased;
 }
@@ -99,12 +179,42 @@ svg {
   height: auto;
 }
 
+/* Removes the 300ms tap delay without disabling pinch-zoom on the page. */
+a,
+button,
+input,
+textarea,
+select,
+label,
+summary {
+  touch-action: manipulation;
+}
+
 a {
   color: inherit;
   text-decoration: none;
 }
 a:hover {
-  color: var(--color-charcoal);
+  color: var(--text-strong);
+}
+
+/* Structural links — nav, post titles, author rows, cards — stay unadorned.
+   Links sitting inside running text must not rely on colour alone, so they
+   are underlined wherever prose can appear. */
+.prose a,
+.postdetail__body a,
+.comment__body a,
+.profile__bio a,
+.profile__facts a,
+.bubble__body a,
+.empty__body a,
+.rail__links a,
+.flash a,
+.field small a,
+p.muted a,
+.replying-to a {
+  text-decoration: underline;
+  text-underline-offset: 2px;
 }
 
 h1,
@@ -115,7 +225,7 @@ h3 {
 }
 
 .muted {
-  color: var(--color-stone);
+  color: var(--text-secondary);
 }
 
 .sr-only {
@@ -135,8 +245,8 @@ h3 {
   left: -999px;
   top: 0;
   z-index: 100;
-  background: var(--color-signal-orange);
-  color: var(--color-paper);
+  background: var(--accent);
+  color: var(--accent-on);
   padding: var(--spacing-8) var(--spacing-16);
   border-radius: var(--radius-full);
 }
@@ -144,6 +254,13 @@ h3 {
   left: var(--spacing-8);
   top: var(--spacing-8);
 }
+
+/* Several controls are deliberately small — a text-only "Follow", a 13px
+   "Reply", the engagement glyphs under a post. Growing the painted box to
+   44px would coarsen the feed, so each of them instead grows its hit area
+   with a transparent ::after overlay that leaves the visual box untouched.
+   Look for that pattern on .action, .linkcta, .linklike, .tabs__item and
+   .btn--sm below. */
 
 /* LAYOUT ------------------------------------------------------------ */
 
@@ -159,7 +276,8 @@ h3 {
   width: 100%;
   max-width: var(--feed-width);
   margin: 0 auto;
-  padding: var(--spacing-16) var(--spacing-16) var(--spacing-32);
+  padding: var(--spacing-16) max(var(--spacing-16), env(safe-area-inset-right))
+    var(--spacing-32) max(var(--spacing-16), env(safe-area-inset-left));
 }
 
 .sidebar,
@@ -202,7 +320,7 @@ h3 {
     height: 100dvh;
     padding: var(--spacing-20) 0;
     overflow-y: auto;
-    border-left: 1px solid var(--color-cloud);
+    border-left: 1px solid var(--border-hairline);
     padding-left: var(--spacing-24);
   }
 }
@@ -220,16 +338,19 @@ h3 {
   font-family: var(--font-display);
 }
 .brand:hover {
-  color: var(--color-ink);
+  color: var(--text-primary);
 }
+/* The one place the original vivid orange still lives on a light background.
+   Its letter is charcoal rather than white — 5.29:1 against the chip, where
+   white would have been 2.91:1. */
 .brand__mark {
   display: grid;
   place-items: center;
   width: 28px;
   height: 28px;
   border-radius: var(--radius-lg);
-  background: var(--color-signal-orange);
-  color: var(--color-paper);
+  background: var(--accent-bright);
+  color: var(--color-charcoal);
   font-family: var(--font-ui);
   font-weight: var(--weight-semibold);
   font-size: var(--text-body);
@@ -246,19 +367,26 @@ h3 {
   display: flex;
   align-items: center;
   gap: var(--spacing-12);
-  padding: 6px var(--spacing-12);
+  /* The sidebar appears at 768px, which includes touch tablets, so these
+     are sized as touch targets rather than pointer-only ones. */
+  min-height: var(--touch-min);
+  padding: var(--spacing-8) var(--spacing-12);
   border-radius: var(--radius-lg);
   font-size: var(--text-body);
   font-weight: var(--weight-medium);
-  color: var(--color-ink);
+  color: var(--text-primary);
   position: relative;
+  transition: background-color var(--speed) ease, color var(--speed) ease;
 }
 .nav__item:hover {
-  background: var(--color-wash);
-  color: var(--color-ink);
+  background: var(--surface-sunken);
+  color: var(--text-primary);
+}
+.nav__item:active {
+  background: var(--surface-fill);
 }
 .nav__item.is-active {
-  color: var(--color-signal-orange);
+  color: var(--accent);
 }
 .nav__icon {
   width: 20px;
@@ -273,8 +401,8 @@ h3 {
 
 .badge {
   margin-left: auto;
-  background: var(--color-signal-orange);
-  color: var(--color-paper);
+  background: var(--accent);
+  color: var(--accent-on);
   border-radius: var(--radius-full);
   padding: 0 7px;
   font-size: var(--text-caption);
@@ -288,7 +416,7 @@ h3 {
   gap: var(--spacing-8);
   margin-top: auto;
   padding-top: var(--spacing-16);
-  border-top: 1px solid var(--color-cloud);
+  border-top: 1px solid var(--border-hairline);
   flex-wrap: wrap;
 }
 .sidebar__me-text {
@@ -318,8 +446,10 @@ h3 {
   align-items: center;
   height: calc(var(--tabbar-h) + env(safe-area-inset-bottom));
   padding-bottom: env(safe-area-inset-bottom);
-  background: var(--color-paper);
-  border-top: 1px solid var(--color-cloud);
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+  background: var(--surface-raised);
+  border-top: 1px solid var(--border-hairline);
 }
 .tabbar__item {
   flex: 1;
@@ -330,11 +460,15 @@ h3 {
   gap: 2px;
   min-height: 48px;
   font-size: 16px;
-  color: var(--color-stone);
+  color: var(--text-secondary);
   position: relative;
+  transition: color var(--speed) ease;
+}
+.tabbar__item:active {
+  opacity: 0.6;
 }
 .tabbar__item.is-active {
-  color: var(--color-signal-orange);
+  color: var(--accent);
 }
 .tabbar__label {
   font-size: var(--text-caption);
@@ -343,15 +477,15 @@ h3 {
 }
 .tabbar__item--cta {
   flex: 0 0 auto;
-  width: 44px;
-  height: 44px;
+  width: var(--touch-min);
+  height: var(--touch-min);
   border-radius: var(--radius-full);
-  background: var(--color-signal-orange);
-  color: var(--color-paper);
+  background: var(--accent);
+  color: var(--accent-on);
   box-shadow: var(--shadow-inset);
 }
 .tabbar__item--cta:hover {
-  color: var(--color-paper);
+  color: var(--accent-on);
 }
 .badge--dot {
   position: absolute;
@@ -361,7 +495,7 @@ h3 {
   height: 7px;
   padding: 0;
   border-radius: var(--radius-full);
-  background: var(--color-signal-orange);
+  background: var(--accent);
 }
 
 /* Must come after the .tabbar base rule: an equal-specificity display:none
@@ -379,11 +513,12 @@ h3 {
   align-items: center;
   justify-content: space-between;
   gap: var(--spacing-8);
-  padding: var(--spacing-12) var(--spacing-16);
-  border-bottom: 1px solid var(--color-cloud);
+  padding: var(--spacing-12) max(var(--spacing-16), env(safe-area-inset-right))
+    var(--spacing-12) max(var(--spacing-16), env(safe-area-inset-left));
+  border-bottom: 1px solid var(--border-hairline);
   position: sticky;
   top: 0;
-  background: var(--color-paper);
+  background: var(--surface-raised);
   z-index: 30;
 }
 .topbar .brand {
@@ -419,57 +554,72 @@ h3 {
   font-weight: var(--weight-medium);
   line-height: 1.4;
   cursor: pointer;
-  min-height: 40px;
-  transition: background-color 0.14s ease, color 0.14s ease,
-    border-color 0.14s ease;
+  min-height: var(--touch-min);
+  transition: background-color var(--speed) ease, color var(--speed) ease,
+    border-color var(--speed) ease, transform var(--speed) ease;
+}
+.btn:active {
+  transform: scale(0.98);
 }
 
 .btn--primary {
-  background: var(--color-signal-orange);
-  color: var(--color-paper);
+  background: var(--accent);
+  color: var(--accent-on);
   box-shadow: var(--shadow-inset);
 }
 .btn--primary:hover {
-  background: var(--color-orange-press);
-  color: var(--color-paper);
+  background: var(--accent-press);
+  color: var(--accent-on);
 }
 
 .btn--ghost {
-  background: var(--color-cloud);
-  color: var(--color-ink);
+  background: var(--surface-fill);
+  color: var(--text-primary);
 }
 .btn--ghost:hover {
-  background: var(--color-mist);
-  color: var(--color-ink);
+  background: var(--surface-fill-strong);
+  color: var(--text-primary);
 }
 
 .btn--outline {
   background: transparent;
-  border-color: var(--color-ash);
-  color: var(--color-ink);
+  border-color: var(--border-control);
+  color: var(--text-primary);
 }
 .btn--outline:hover {
-  border-color: var(--color-ink);
-  color: var(--color-ink);
+  border-color: var(--text-primary);
+  color: var(--text-primary);
 }
 
 .btn--danger {
   background: transparent;
-  border-color: var(--color-ash);
-  color: var(--color-charcoal);
+  border-color: var(--border-control);
+  color: var(--text-strong);
 }
 .btn--danger:hover {
-  border-color: var(--color-signal-orange);
-  color: var(--color-signal-orange);
+  border-color: var(--accent);
+  color: var(--accent);
 }
 
 .btn--block {
   width: 100%;
 }
+/* Keeps the compact pill look while the ::after overlay carries the 44px
+   hit area — see .touch-target above. */
 .btn--sm {
   padding: 6px var(--spacing-16);
   min-height: 34px;
   font-size: var(--text-meta);
+  position: relative;
+}
+.btn--sm::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  transform: translateY(-50%);
+  height: var(--touch-min);
 }
 .btn.is-disabled {
   opacity: 0.45;
@@ -482,40 +632,72 @@ h3 {
 
 /* Text-only orange call to action, as on each feed row */
 .linkcta {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
   background: none;
   border: 0;
   padding: 0;
   font-family: var(--font-ui);
   font-size: var(--text-body);
   font-weight: var(--weight-medium);
-  color: var(--color-signal-orange);
+  color: var(--accent);
   cursor: pointer;
+  transition: color var(--speed) ease;
+}
+.linkcta::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: max(100%, var(--touch-min));
+  height: var(--touch-min);
 }
 .linkcta:hover {
-  color: var(--color-orange-press);
+  color: var(--accent-press);
+}
+.linkcta:active {
+  opacity: 0.7;
 }
 
 .linklike {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
   background: none;
   border: 0;
   padding: 0;
   font: inherit;
   font-size: var(--text-meta);
-  color: var(--color-stone);
+  color: var(--text-secondary);
   cursor: pointer;
+  transition: color var(--speed) ease;
+}
+.linklike::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: max(100%, var(--touch-min));
+  height: var(--touch-min);
 }
 .linklike:hover {
-  color: var(--color-charcoal);
+  color: var(--text-strong);
+}
+.linklike:active {
+  opacity: 0.7;
 }
 .linklike--danger:hover {
-  color: var(--color-signal-orange);
+  color: var(--accent);
 }
 .inline-form {
-  display: inline;
+  display: inline-flex;
 }
 
 :focus-visible {
-  outline: 2px solid var(--color-signal-orange);
+  outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
 
@@ -528,7 +710,7 @@ h3 {
   gap: var(--spacing-12);
   padding-bottom: var(--spacing-16);
   margin-bottom: var(--spacing-16);
-  border-bottom: 1px solid var(--color-cloud);
+  border-bottom: 1px solid var(--border-hairline);
   flex-wrap: wrap;
 }
 .pagehead__title {
@@ -553,8 +735,8 @@ h3 {
   place-items: center;
   flex: 0 0 auto;
   border-radius: var(--radius-full);
-  background: var(--color-cloud);
-  color: var(--color-ink);
+  background: var(--surface-fill);
+  color: var(--text-primary);
   font-family: var(--font-ui);
   font-weight: var(--weight-semibold);
   line-height: 1;
@@ -585,7 +767,7 @@ h3 {
 .post {
   padding-bottom: var(--spacing-24);
   margin-bottom: var(--spacing-24);
-  border-bottom: 1px solid var(--color-cloud);
+  border-bottom: 1px solid var(--border-hairline);
 }
 .post:last-of-type {
   border-bottom: 0;
@@ -616,7 +798,7 @@ h3 {
 }
 .post__names span {
   font-size: var(--text-meta);
-  color: var(--color-stone);
+  color: var(--text-secondary);
 }
 .post__names strong,
 .post__names span {
@@ -626,26 +808,38 @@ h3 {
 }
 .post__head time {
   font-size: var(--text-meta);
-  color: var(--color-stone);
+  color: var(--text-secondary);
   white-space: nowrap;
 }
+/* Timestamp and Follow sit together rather than replacing one another, so a
+   post never loses its date just because you don't follow the author. */
+.post__aside {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-12);
+  flex: 0 0 auto;
+}
 
+/* Titles are user-written and can be a single unbroken string. The old
+   `overflow-x: hidden` on body used to swallow that; now that the page no
+   longer masks overflow, the text has to break on its own. */
 .post__title {
   font-family: var(--font-display);
   font-size: var(--text-heading-sm);
   font-weight: var(--weight-medium);
   line-height: 1.25;
   margin: 0 0 var(--spacing-8);
+  overflow-wrap: anywhere;
 }
 .post__title a:hover {
-  color: var(--color-charcoal);
+  color: var(--text-strong);
 }
 
 .post__excerpt {
   font-family: var(--font-read);
   font-size: var(--text-read);
-  line-height: 1.42;
-  color: var(--color-ink);
+  line-height: 1.5;
+  color: var(--text-primary);
   margin: 0 0 var(--spacing-12);
   overflow-wrap: anywhere;
 }
@@ -654,7 +848,7 @@ h3 {
   display: flex;
   gap: var(--spacing-8);
   font-size: var(--text-caption);
-  color: var(--color-stone);
+  color: var(--text-secondary);
   flex-wrap: wrap;
   margin-bottom: var(--spacing-8);
 }
@@ -665,12 +859,12 @@ h3 {
   border-radius: var(--radius-full);
   font-size: var(--text-caption);
   font-weight: var(--weight-medium);
-  border: 1px solid var(--color-ash);
-  color: var(--color-stone);
+  border: 1px solid var(--border-control);
+  color: var(--text-secondary);
 }
 .chip--draft {
-  border-color: var(--color-signal-orange);
-  color: var(--color-signal-orange);
+  border-color: var(--accent);
+  color: var(--accent);
 }
 
 /* ENGAGEMENT ROW ----------------------------------------------------- */
@@ -678,16 +872,19 @@ h3 {
 .actions {
   display: flex;
   align-items: center;
-  gap: var(--spacing-16);
+  /* 20px rather than 16px so the 44px hit overlays below still clear the
+     8px minimum separation between adjacent touch targets. */
+  gap: var(--spacing-20);
   margin-top: var(--spacing-12);
 }
 /* On a full post the action row reads as a footer, so it gets a rule above. */
 .postdetail .actions {
   margin-top: var(--spacing-24);
   padding-top: var(--spacing-16);
-  border-top: 1px solid var(--color-cloud);
+  border-top: 1px solid var(--border-hairline);
 }
 .action {
+  position: relative;
   display: inline-flex;
   align-items: center;
   gap: var(--spacing-8);
@@ -696,15 +893,28 @@ h3 {
   padding: var(--spacing-4) 0;
   font-family: var(--font-ui);
   font-size: var(--text-meta);
-  color: var(--color-stone);
+  color: var(--text-secondary);
   cursor: pointer;
   min-height: 32px;
+  transition: color var(--speed) ease;
+}
+.action::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: max(100%, var(--touch-min));
+  height: var(--touch-min);
 }
 .action:hover {
-  color: var(--color-ink);
+  color: var(--text-primary);
+}
+.action:active {
+  opacity: 0.6;
 }
 .action.is-on {
-  color: var(--color-signal-orange);
+  color: var(--accent);
 }
 .action--end {
   margin-left: auto;
@@ -732,16 +942,17 @@ h3 {
   font-weight: var(--weight-medium);
   line-height: 1.24;
   margin: var(--spacing-16) 0 var(--spacing-8);
+  overflow-wrap: anywhere;
 }
 .postdetail__meta {
   display: flex;
   gap: var(--spacing-8);
   font-size: var(--text-meta);
-  color: var(--color-stone);
+  color: var(--text-secondary);
   flex-wrap: wrap;
   align-items: center;
   padding-bottom: var(--spacing-16);
-  border-bottom: 1px solid var(--color-cloud);
+  border-bottom: 1px solid var(--border-hairline);
 }
 .postdetail__body {
   font-family: var(--font-read);
@@ -754,16 +965,19 @@ h3 {
   margin: 0 0 1em;
 }
 
+/* Underlined as well as coloured, so it is not distinguished by colour alone. */
 .mention {
-  color: var(--color-signal-orange);
+  color: var(--accent);
   font-weight: var(--weight-medium);
+  text-decoration: underline;
+  text-underline-offset: 2px;
 }
 
 /* SECTIONS + CARDS (sidebar, forms) ---------------------------------- */
 
 .card {
-  background: var(--color-paper);
-  border: 1px solid var(--color-cloud);
+  background: var(--surface-raised);
+  border: 1px solid var(--border-hairline);
   border-radius: var(--radius-xl);
   padding: var(--spacing-20);
   margin-bottom: var(--spacing-16);
@@ -781,13 +995,13 @@ h3 {
 
 .hero {
   padding: var(--spacing-32) 0 var(--spacing-24);
-  border-bottom: 1px solid var(--color-cloud);
+  border-bottom: 1px solid var(--border-hairline);
   margin-bottom: var(--spacing-32);
 }
 .hero__eyebrow {
   font-size: var(--text-meta);
   font-weight: var(--weight-medium);
-  color: var(--color-signal-orange);
+  color: var(--accent);
   margin: 0 0 var(--spacing-8);
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -802,8 +1016,8 @@ h3 {
 .hero__lede {
   font-family: var(--font-read);
   font-size: var(--text-read);
-  line-height: 1.45;
-  color: var(--color-slate);
+  line-height: 1.5;
+  color: var(--text-secondary);
   max-width: 46ch;
   margin: 0 0 var(--spacing-24);
 }
@@ -828,7 +1042,7 @@ h3 {
 }
 .prose .lede {
   font-size: var(--text-subheading);
-  color: var(--color-slate);
+  color: var(--text-secondary);
 }
 .prose ul {
   padding-left: 1.1em;
@@ -837,7 +1051,7 @@ h3 {
   font-family: var(--font-mono);
   font-size: 14px;
   letter-spacing: -0.014em;
-  background: var(--color-cloud);
+  background: var(--surface-fill);
   padding: 1px 5px;
   border-radius: var(--radius-md);
 }
@@ -860,10 +1074,12 @@ h3 {
 }
 .field small {
   font-size: var(--text-caption);
+  color: var(--text-secondary);
 }
 .field__error {
-  color: var(--color-signal-orange);
-  font-size: var(--text-caption);
+  color: var(--accent);
+  font-size: var(--text-meta);
+  font-weight: var(--weight-medium);
 }
 
 input[type="text"],
@@ -875,23 +1091,34 @@ textarea,
 select {
   width: 100%;
   padding: var(--spacing-8) var(--spacing-12);
-  border: 1px solid var(--color-ash);
+  border: 1px solid var(--border-control);
   border-radius: var(--radius-xl);
-  background: var(--color-paper);
-  color: var(--color-ink);
+  background: var(--surface-raised);
+  color: var(--text-primary);
   font-family: var(--font-ui);
   /* 16px stops iOS zooming the page when a field takes focus */
   font-size: 16px;
   line-height: 1.5;
+  min-height: var(--touch-min);
 }
 input::placeholder,
 textarea::placeholder {
-  color: var(--color-stone);
+  color: var(--text-secondary);
 }
 input:focus,
-textarea:focus {
-  border-color: var(--color-ink);
-  outline: none;
+textarea:focus,
+select:focus {
+  border-color: var(--text-primary);
+}
+/* The previous rule here was `input:focus { outline: none }`, which at
+   specificity (0,1,1) beat the global :focus-visible (0,1,0) and left every
+   text field in the app with no focus ring at all. Scoping to :focus-visible
+   keeps the border cue and restores the ring. */
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 input[type="search"] {
   border-radius: var(--radius-full);
@@ -911,7 +1138,7 @@ textarea {
   flex-wrap: wrap;
 }
 .form--inline textarea {
-  min-height: 44px;
+  min-height: var(--touch-min);
   flex: 1;
   min-width: 0;
 }
@@ -923,8 +1150,11 @@ textarea {
 .replying-to {
   width: 100%;
   font-size: var(--text-meta);
-  color: var(--color-stone);
+  color: var(--text-secondary);
   margin: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-8);
 }
 
 .searchbar {
@@ -939,28 +1169,35 @@ textarea {
   display: flex;
   gap: var(--spacing-20);
   margin-bottom: var(--spacing-24);
-  border-bottom: 1px solid var(--color-cloud);
+  border-bottom: 1px solid var(--border-hairline);
   overflow-x: auto;
   scrollbar-width: none;
 }
 .tabs::-webkit-scrollbar {
   display: none;
 }
+/* Sized to 44px directly rather than with an ::after overlay: .tabs is an
+   overflow-x scroller, and an overlay taller than its row would have given
+   it a vertical scrollbar too. */
 .tabs__item {
+  display: flex;
+  align-items: center;
+  min-height: var(--touch-min);
   padding: 0 0 var(--spacing-12);
   font-size: var(--text-body);
   font-weight: var(--weight-medium);
-  color: var(--color-stone);
+  color: var(--text-secondary);
   white-space: nowrap;
   border-bottom: 2px solid transparent;
   margin-bottom: -1px;
+  transition: color var(--speed) ease;
 }
 .tabs__item:hover {
-  color: var(--color-ink);
+  color: var(--text-primary);
 }
 .tabs__item.is-active {
-  color: var(--color-ink);
-  border-bottom-color: var(--color-signal-orange);
+  color: var(--text-primary);
+  border-bottom-color: var(--accent);
 }
 
 /* USER ROWS ---------------------------------------------------------- */
@@ -972,7 +1209,7 @@ textarea {
   padding: var(--spacing-12) 0;
 }
 .userrow + .userrow {
-  border-top: 1px solid var(--color-cloud);
+  border-top: 1px solid var(--border-hairline);
 }
 .userrow__main {
   display: flex;
@@ -993,7 +1230,7 @@ textarea {
 }
 .userrow__text > span {
   font-size: var(--text-meta);
-  color: var(--color-stone);
+  color: var(--text-secondary);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1006,7 +1243,7 @@ textarea {
 
 .profile {
   padding-bottom: var(--spacing-24);
-  border-bottom: 1px solid var(--color-cloud);
+  border-bottom: 1px solid var(--border-hairline);
   margin-bottom: var(--spacing-24);
 }
 .profile__top {
@@ -1029,7 +1266,7 @@ textarea {
 }
 .profile__handle {
   font-size: var(--text-meta);
-  color: var(--color-stone);
+  color: var(--text-secondary);
   margin: 0 0 var(--spacing-8);
 }
 .profile__bio {
@@ -1038,22 +1275,25 @@ textarea {
 }
 .profile__facts {
   font-size: var(--text-meta);
-  color: var(--color-stone);
+  color: var(--text-secondary);
   display: flex;
   gap: var(--spacing-8);
   flex-wrap: wrap;
   margin: 0 0 var(--spacing-12);
+  /* A pasted website URL is the longest unbroken string on this page. */
+  overflow-wrap: anywhere;
+  min-width: 0;
 }
 .profile__stats {
   display: flex;
   gap: var(--spacing-20);
   margin: 0;
   font-size: var(--text-meta);
-  color: var(--color-stone);
+  color: var(--text-secondary);
   flex-wrap: wrap;
 }
 .profile__stats strong {
-  color: var(--color-ink);
+  color: var(--text-primary);
   font-weight: var(--weight-semibold);
 }
 
@@ -1062,7 +1302,7 @@ textarea {
 .comments {
   margin-top: var(--spacing-32);
   padding-top: var(--spacing-24);
-  border-top: 1px solid var(--color-cloud);
+  border-top: 1px solid var(--border-hairline);
 }
 .comments .form--inline {
   margin-bottom: var(--spacing-8);
@@ -1070,7 +1310,7 @@ textarea {
 
 .comment {
   padding: var(--spacing-16) 0;
-  border-top: 1px solid var(--color-cloud);
+  border-top: 1px solid var(--border-hairline);
 }
 .comment__author {
   display: flex;
@@ -1094,14 +1334,14 @@ textarea {
 }
 .comment__tools {
   display: flex;
-  gap: var(--spacing-16);
+  gap: var(--spacing-20);
   align-items: center;
 }
 .comment--reply {
   margin-left: var(--spacing-20);
   padding-left: var(--spacing-16);
   border-top: 0;
-  border-left: 2px solid var(--color-cloud);
+  border-left: 2px solid var(--border-hairline);
 }
 
 /* MESSAGES + NOTIFICATIONS ------------------------------------------- */
@@ -1112,7 +1352,12 @@ textarea {
   align-items: center;
   gap: var(--spacing-12);
   padding: var(--spacing-16) 0;
-  border-bottom: 1px solid var(--color-cloud);
+  border-bottom: 1px solid var(--border-hairline);
+  transition: background-color var(--speed) ease;
+}
+.threadrow:hover,
+.noterow:hover {
+  background: var(--surface-sunken);
 }
 .threadrow__text,
 .noterow__text {
@@ -1129,7 +1374,7 @@ textarea {
 .threadrow__text span,
 .noterow__text span {
   font-size: var(--text-meta);
-  color: var(--color-stone);
+  color: var(--text-secondary);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1137,11 +1382,13 @@ textarea {
 .threadrow time,
 .noterow time {
   font-size: var(--text-caption);
-  color: var(--color-stone);
+  color: var(--text-secondary);
   white-space: nowrap;
 }
+/* The orange rule is the glance-level cue; the template also carries an
+   sr-only "Unread", so the state is never conveyed by colour alone. */
 .noterow.is-unread {
-  border-left: 2px solid var(--color-signal-orange);
+  border-left: 2px solid var(--accent);
   padding-left: var(--spacing-12);
 }
 
@@ -1149,24 +1396,28 @@ textarea {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-8);
-  max-height: 60vh;
+  max-height: 60dvh;
   overflow-y: auto;
+  overscroll-behavior: contain;
   padding: var(--spacing-8) 0;
 }
 .bubble {
   max-width: min(80%, 440px);
   padding: var(--spacing-8) var(--spacing-12);
   border-radius: var(--radius-xl);
-  background: var(--color-cloud);
+  background: var(--surface-fill);
   align-self: flex-start;
 }
 .bubble--mine {
   align-self: flex-end;
-  background: var(--color-signal-orange);
-  color: var(--color-paper);
+  background: var(--accent);
+  color: var(--accent-on);
 }
-.bubble--mine .muted {
-  color: rgba(255, 255, 255, 0.78);
+/* The timestamp used to be white at 78% opacity over orange (≈2.15:1). It
+   now takes the full label colour and relies on size for hierarchy. */
+.bubble--mine .muted,
+.bubble--mine .bubble__time {
+  color: var(--accent-on);
 }
 .bubble__body {
   overflow-wrap: anywhere;
@@ -1189,7 +1440,7 @@ textarea {
 .empty__mark {
   display: block;
   font-size: var(--text-heading);
-  color: var(--color-mist);
+  color: var(--border-control);
   margin-bottom: var(--spacing-8);
 }
 .empty__title {
@@ -1201,7 +1452,7 @@ textarea {
 .empty__body {
   max-width: 42ch;
   margin: 0 auto var(--spacing-16);
-  color: var(--color-stone);
+  color: var(--text-secondary);
 }
 
 .linklist {
@@ -1213,7 +1464,7 @@ textarea {
   display: flex;
   flex-direction: column;
   padding: var(--spacing-12) 0;
-  border-bottom: 1px solid var(--color-cloud);
+  border-bottom: 1px solid var(--border-hairline);
 }
 .linklist li:last-child {
   border-bottom: 0;
@@ -1232,7 +1483,7 @@ textarea {
   gap: var(--spacing-12);
   margin-top: var(--spacing-32);
   padding-top: var(--spacing-16);
-  border-top: 1px solid var(--color-cloud);
+  border-top: 1px solid var(--border-hairline);
   flex-wrap: wrap;
 }
 .pager__status {
@@ -1250,19 +1501,19 @@ textarea {
 .flash {
   padding: var(--spacing-12) var(--spacing-16);
   border-radius: var(--radius-xl);
-  background: var(--color-cloud);
+  background: var(--surface-fill);
   font-size: var(--text-body);
-  color: var(--color-charcoal);
+  color: var(--text-strong);
 }
 /* Orange is the system's only attention colour, so errors borrow it rather
    than introducing a red that exists nowhere else. */
 .flash--error {
-  background: var(--color-paper);
-  border: 1px solid var(--color-signal-orange);
-  color: var(--color-signal-orange);
+  background: var(--surface-raised);
+  border: 1px solid var(--accent);
+  color: var(--accent);
 }
 .flash--success {
-  border-left: 3px solid var(--color-signal-orange);
+  border-left: 3px solid var(--accent);
 }
 
 /* RIGHT RAIL --------------------------------------------------------- */
@@ -1271,7 +1522,7 @@ textarea {
   margin-bottom: var(--spacing-24);
 }
 .rail__card {
-  border: 1px solid var(--color-cloud);
+  border: 1px solid var(--border-hairline);
   border-radius: var(--radius-xl);
   padding: var(--spacing-20);
   margin-bottom: var(--spacing-24);
@@ -1285,7 +1536,7 @@ textarea {
 }
 .rail__lede {
   font-size: var(--text-body);
-  color: var(--color-stone);
+  color: var(--text-secondary);
   margin: 0 0 var(--spacing-16);
 }
 .rail__section {
@@ -1294,7 +1545,7 @@ textarea {
 .rail__heading {
   font-size: var(--text-meta);
   font-weight: var(--weight-semibold);
-  color: var(--color-ink);
+  color: var(--text-primary);
   margin-bottom: var(--spacing-12);
 }
 .upnext {
@@ -1308,31 +1559,41 @@ textarea {
 .upnext__pub {
   font-size: var(--text-meta);
   font-weight: var(--weight-medium);
-  color: var(--color-ink);
+  color: var(--text-primary);
 }
 .upnext__headline {
   font-size: var(--text-body);
   font-weight: var(--weight-regular);
-  color: var(--color-ink);
+  color: var(--text-primary);
   display: block;
   margin: 2px 0;
+  overflow-wrap: anywhere;
 }
 .upnext__meta {
   font-size: var(--text-caption);
-  color: var(--color-stone);
+  color: var(--text-secondary);
 }
 .rail__links {
   display: flex;
   gap: var(--spacing-12);
   flex-wrap: wrap;
   font-size: var(--text-caption);
-  color: var(--color-stone);
+  color: var(--text-secondary);
   padding-top: var(--spacing-16);
-  border-top: 1px solid var(--color-cloud);
+  border-top: 1px solid var(--border-hairline);
 }
 
 @media (prefers-reduced-motion: reduce) {
-  * {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
     transition: none !important;
+    animation: none !important;
+  }
+  .btn:active {
+    transform: none;
   }
 }

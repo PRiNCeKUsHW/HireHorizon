@@ -8,20 +8,25 @@
         <span>@{{ post.author.username }}</span>
       </span>
     </a>
-    {% if user.is_authenticated and post.author != user and not post.author_followed_by_me %}
-      {% comment %}
-        Text-only orange CTA, opposite the author row. Only shown for authors
-        the viewer does not already follow.
-      {% endcomment %}
-      <form method="post" action="{% url 'accounts:toggle_follow' post.author.username %}" class="inline-form">
-        {% csrf_token %}
-        <button class="linkcta" type="submit">Follow</button>
-      </form>
-    {% else %}
+    {% comment %}
+      Timestamp and Follow sit side by side rather than replacing one another.
+      Previously the CTA took the timestamp's place, so a post by someone you
+      don't follow showed no time at all — exactly the posts a reader is least
+      likely to recognise and most needs dated.
+    {% endcomment %}
+    <span class="post__aside">
       <time datetime="{{ post.created_at|date:'c' }}" title="{{ post.created_at }}">
         {{ post.created_at|naturaltime }}
       </time>
-    {% endif %}
+      {% if user.is_authenticated and post.author != user and not post.author_followed_by_me %}
+        <form method="post" action="{% url 'accounts:toggle_follow' post.author.username %}" class="inline-form">
+          {% csrf_token %}
+          <button class="linkcta" type="submit">
+            Follow<span class="sr-only"> {{ post.author.name }}</span>
+          </button>
+        </form>
+      {% endif %}
+    </span>
   </div>
 
   <h2 class="post__title"><a href="{{ post.get_absolute_url }}">{{ post.title }}</a></h2>

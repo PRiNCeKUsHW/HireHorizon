@@ -5,10 +5,7 @@
 <section class="card">
   <form method="post" class="form" novalidate>
     {% csrf_token %}
-    <div class="field">
-      {{ form.body }}
-      {% for error in form.body.errors %}<small class="field__error">{{ error }}</small>{% endfor %}
-    </div>
+    {% include "partials/field.html" with field=form.body %}
     <div class="form__actions">
       <button class="btn btn--primary" type="submit">Save</button>
       <a class="btn btn--ghost" href="{{ comment.post.get_absolute_url }}">Cancel</a>

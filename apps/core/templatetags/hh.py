@@ -48,3 +48,27 @@ def compact(number):
 def avatar(user, size="md"):
     """CSS avatar built from the user's initials. No uploads anywhere."""
     return {"user": user, "size": size}
+
+
+@register.filter
+def a11y_field(field):
+    """Render a form widget wired to its own help text and errors.
+
+    A plain ``{{ field }}`` emits the widget alone, so the error rendered
+    beside it is visible but not announced as part of the field — a screen
+    reader reaches the input, says nothing about the problem, and only meets
+    the message later as loose text. The ids referenced here are emitted by
+    partials/field.html.
+    """
+    described_by = []
+    if field.help_text:
+        described_by.append(f"{field.auto_id}_help")
+    if field.errors:
+        described_by.append(f"{field.auto_id}_error")
+
+    attrs = {}
+    if described_by:
+        attrs["aria-describedby"] = " ".join(described_by)
+    if field.errors:
+        attrs["aria-invalid"] = "true"
+    return field.as_widget(attrs=attrs)
