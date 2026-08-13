@@ -173,6 +173,92 @@ or wrong subnet); **connection refused** means something answered and declined
 
 ---
 
+## Going public: `bash tunnel.sh`
+
+`run.sh` puts HireHorizon on your Wi-Fi. `tunnel.sh` puts it on the public
+Internet, from the same phone, with no account, no router configuration, and
+no port forwarding:
+
+```bash
+bash tunnel.sh
+```
+
+This uses a [Cloudflare Tunnel](https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/)
+"quick tunnel": the phone opens an *outbound* connection to Cloudflare, and
+Cloudflare hands back a public HTTPS URL that forwards to it. Nothing listens
+for inbound connections on your router, so there's no port to leave open.
+
+The first run downloads the small `cloudflared` binary, then every run prints
+something like:
+
+```
+==============================================================
+  HireHorizon is public at:
+  https://some-random-words.trycloudflare.com
+
+  This URL works until you stop this script (Ctrl+C), and will
+  be different the next time you run it.
+==============================================================
+```
+
+Share that URL with whoever you want to reach the site. Leave the script
+running — closing it (or losing the connection) takes the site down.
+
+**Read before relying on this:**
+
+- **The URL is not permanent.** It changes every time you (re)start
+  `tunnel.sh`. Fine for sharing with a few people right now; not something to
+  print on a business card. If you need a URL that never changes, you need a
+  domain — see "Public access with your own domain" below.
+- **It's Cloudflare's free, account-less tier.** Their own docs are explicit
+  that quick tunnels carry no uptime guarantee and are meant for trying
+  things out, not for anything that has to stay up. For personal, low-traffic
+  use this is normal and fine; it is not an SLA.
+- **`tunnel.sh` already turns on the things that matter**: `DEBUG=False`,
+  gunicorn instead of the `runserver` dev server (Django's own docs say not
+  to expose that one), `HTTPS_ENABLED=True` (secure cookies, HSTS, the
+  Cloudflare-to-origin proto header handled correctly — verified end-to-end,
+  including CSRF, against a real gunicorn instance with the exact headers
+  Cloudflare's edge sends), and `ALLOWED_HOSTS` / `CSRF_TRUSTED_ORIGINS`
+  scoped to `*.trycloudflare.com` only — not `*`.
+- **What it does *not* add**: rate limiting on login/register/contact. A
+  rotating, unguessable URL is a real deterrent, but if you post the link
+  somewhere public and it gets traffic, that's the next thing to add — ask
+  and it can be.
+- **Your phone is now a server.** It needs to stay on, stay connected, and
+  stay unlocked-enough to keep running. See "Keeping it running" above —
+  battery optimization and Termux:Boot matter more once other people are
+  depending on the link working.
+
+### Public access with your own domain
+
+If you own a domain, Cloudflare can give that same tunnel a URL that never
+changes — `hirehorizon.yourdomain.com` instead of a random subdomain — by
+creating a *named* tunnel on a free Cloudflare account instead of a quick
+one. That's a one-time `cloudflared tunnel login` + `cloudflared tunnel
+create` setup rather than a single command; see
+[Cloudflare's guide](https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/get-started/create-remote-tunnel/).
+Once the tunnel is named and pointed at `http://localhost:8000`, run the app
+with `bash run.sh` (not `tunnel.sh`, which is quick-tunnel-only) and set in
+`.env`:
+
+```bash
+HTTPS_ENABLED=True
+ALLOWED_HOSTS=hirehorizon.yourdomain.com
+CSRF_TRUSTED_ORIGINS=https://hirehorizon.yourdomain.com
+```
+
+### Other ways to go public
+
+`tunnel.sh` is the one this project sets up for you. Alternatives, for context:
+
+| Option | How it works | Trade-off |
+|---|---|---|
+| **Cloudflare Tunnel** (what `tunnel.sh` uses) | Outbound connection to Cloudflare; they hand back a public HTTPS URL | No inbound ports opened. Free tier URL rotates unless you add a domain |
+| **Port forwarding** | Router forwards an external port to the phone | Exposes the phone directly to scanners. Needs a static/dynamic-DNS address, and many mobile carriers use CGNAT, which makes this impossible over mobile data |
+| **VPS / hosting** | Run Django on a rented server instead of the phone | Costs money, but is the right answer once uptime actually matters |
+| **Tailscale / WireGuard** | Private network between your own devices | Not public — only people you invite can reach it |
+
 ## 127.0.0.1 vs 0.0.0.0 vs the public Internet
 
 These are three different things, and only the first two are about binding.
@@ -186,36 +272,16 @@ These are three different things, and only the first two are about binding.
 
 Your phone sits behind your router's NAT and behind your mobile carrier's
 network. Machines on the Internet have no route to it. Binding to `0.0.0.0`
-changes nothing about that; it only widens which *local* interfaces are served.
+changes nothing about that; it only widens which *local* interfaces are
+served — reaching the actual public Internet needs something like the tunnel
+described above, which is what `tunnel.sh` sets up.
 
-To let someone outside your Wi-Fi reach the app you need one of:
-
-| Option | How it works | Trade-off |
-|---|---|---|
-| **Tunnel** (Cloudflare Tunnel, ngrok, tailscale funnel) | An outbound connection from the phone to a relay; the relay gives you a public HTTPS URL | Easiest and safest — no inbound ports opened. URL may rotate on the free tiers |
-| **Port forwarding** | Router forwards an external port to the phone | Exposes the phone directly. Needs a static/dynamic-DNS address, and many ISPs use CGNAT which makes it impossible |
-| **VPS / hosting** | Run Django on a rented server instead | Costs money, but is the right answer for anything real |
-| **Tailscale / WireGuard** | Private network between your own devices | Only people you invite can reach it — ideal for personal use |
-
-### Before you expose it to anyone
-
-Exposing a phone to the Internet is a real security decision, not a checkbox:
-
-- Set `DEBUG=False` and a real `SECRET_KEY`. With `DEBUG=True`, Django serves a
-  full traceback with settings and local variables to anyone who triggers an error.
-- Set `ALLOWED_HOSTS` to the exact hostname, not `*`.
-- Set `CSRF_TRUSTED_ORIGINS` to the public origin, including `https://`.
-- Set `HTTPS_ENABLED=True` **only** once traffic really is HTTPS end to end
-  (tunnels give you this; plain port forwarding does not). Over plain HTTP it
-  forces a redirect loop and the site becomes unreachable.
-- Your phone becomes a server: it is reachable by scanners within minutes of
-  going public, it has no firewall in front of it, and everything in the database
-  — including private messages — is only as protected as this app's code.
-- `runserver` is a development server. For real exposure use gunicorn:
-  `gunicorn config.wsgi:application --bind 0.0.0.0:8000`.
-
-Prefer a tunnel over port forwarding, and prefer a VPS over both if the site
-matters.
+Whichever route gets you public, the fundamentals are the same: `DEBUG=False`
+and a real `SECRET_KEY` (with `DEBUG=True`, Django hands anyone who triggers
+an error a full traceback, settings included), `ALLOWED_HOSTS` scoped to the
+real hostname rather than `*`, `HTTPS_ENABLED=True` only once traffic really
+is HTTPS end to end, and gunicorn instead of `runserver`. `tunnel.sh` already
+does all of this for the Cloudflare Tunnel path.
 
 ---
 

@@ -11,6 +11,10 @@ db.sqlite3-journal
 staticfiles/
 *.log
 
+# tunnel.sh — downloaded cloudflared binary and gunicorn's runtime pid file
+.bin/
+.gunicorn.pid
+
 # Secrets — never commit
 .env
 
