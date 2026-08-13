@@ -9,7 +9,13 @@ class MessageForm(forms.ModelForm):
         fields = ("body",)
         widgets = {
             "body": forms.Textarea(
-                attrs={"rows": 2, "placeholder": "Write a message…", "autofocus": True}
+                attrs={
+                    "rows": 2,
+                    "placeholder": "Write a message…",
+                    "autofocus": True,
+                    # No visible label by design, so the name has to come from here.
+                    "aria-label": "Write a message",
+                }
             )
         }
         labels = {"body": ""}

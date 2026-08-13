@@ -2,7 +2,7 @@
 <form class="rail__search" action="{% url 'core:search' %}" method="get" role="search">
   <label class="sr-only" for="rail-q">Search HireHorizon</label>
   <input id="rail-q" type="search" name="q" placeholder="Search HireHorizon"
-         value="{{ request.GET.q|default:'' }}" />
+         enterkeyhint="search" value="{{ request.GET.q|default:'' }}" />
 </form>
 
 {% if not user.is_authenticated %}
