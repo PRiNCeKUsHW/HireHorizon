@@ -390,6 +390,14 @@ h3 {
   margin: 0;
   padding: 0;
 }
+.topbar__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-12);
+}
+.topbar__avatar {
+  line-height: 0; /* avoid extra height from the avatar's inline box */
+}
 @media (min-width: 768px) {
   .topbar {
     display: none;

@@ -10,6 +10,7 @@
     <div class="profile__actions">
       {% if is_self %}
         <a class="btn btn--ghost btn--sm" href="{% url 'accounts:edit_profile' %}">Edit profile</a>
+        <a class="btn btn--ghost btn--sm" href="{% url 'accounts:settings' %}">Settings</a>
       {% elif user.is_authenticated %}
         <form method="post" action="{% url 'accounts:toggle_follow' profile_user.username %}" class="inline-form js-follow-form">
           {% csrf_token %}

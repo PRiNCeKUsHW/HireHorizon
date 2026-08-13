@@ -9,8 +9,10 @@
       </span>
     </a>
     {% if user.is_authenticated and post.author != user and not post.author_followed_by_me %}
-      {# Text-only orange CTA, opposite the author row. Only shown for authors
-         the viewer does not already follow. #}
+      {% comment %}
+        Text-only orange CTA, opposite the author row. Only shown for authors
+        the viewer does not already follow.
+      {% endcomment %}
       <form method="post" action="{% url 'accounts:toggle_follow' post.author.username %}" class="inline-form">
         {% csrf_token %}
         <button class="linkcta" type="submit">Follow</button>

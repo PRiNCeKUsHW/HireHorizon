@@ -15,4 +15,9 @@
     <code>python manage.py changepassword &lt;username&gt;</code>.
   </p>
 </section>
+
+<form method="post" action="{% url 'accounts:logout' %}">
+  {% csrf_token %}
+  <button class="btn btn--outline" type="submit">Sign out</button>
+</form>
 {% endblock %}
