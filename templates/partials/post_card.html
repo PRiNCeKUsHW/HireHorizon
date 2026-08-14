@@ -47,13 +47,13 @@
             data-url="{% url 'blog:toggle_like' post.slug %}"
             {% if not user.is_authenticated %}data-auth="0"{% endif %}
             aria-pressed="{% if post.liked_by_me %}true{% else %}false{% endif %}">
-      <span aria-hidden="true">♥</span>
+      {% icon "heart" 18 %}
       <span class="action__count js-like-count">{{ post.like_count|default:0|compact }}</span>
       <span class="sr-only">likes</span>
     </button>
 
     <a class="action" href="{{ post.get_absolute_url }}#comments">
-      <span aria-hidden="true">◇</span>
+      {% icon "message-circle" 18 %}
       <span class="action__count">{{ post.comment_count|default:0|compact }}</span>
       <span class="sr-only">comments</span>
     </a>
@@ -62,7 +62,7 @@
             data-url="{% url 'blog:toggle_repost' post.slug %}"
             {% if not user.is_authenticated %}data-auth="0"{% endif %}
             aria-pressed="{% if post.reposted_by_me %}true{% else %}false{% endif %}">
-      <span aria-hidden="true">⇄</span>
+      {% icon "repeat" 18 %}
       <span class="action__count js-repost-count">{{ post.repost_count|default:0|compact }}</span>
       <span class="sr-only">reposts</span>
     </button>
@@ -71,7 +71,7 @@
             data-url="{% url 'blog:toggle_bookmark' post.slug %}"
             {% if not user.is_authenticated %}data-auth="0"{% endif %}
             aria-pressed="{% if post.bookmarked_by_me %}true{% else %}false{% endif %}">
-      <span aria-hidden="true">❏</span>
+      {% icon "bookmark" 18 %}
       <span class="sr-only">bookmark</span>
     </button>
   </div>

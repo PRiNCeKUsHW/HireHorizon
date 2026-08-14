@@ -13,6 +13,6 @@
     {% if thread.last %}<time class="muted">{{ thread.last.created_at|naturaltime }}</time>{% endif %}
   </a>
 {% empty %}
-  {% include "partials/empty.html" with title="No messages yet" body="Open someone's profile and tap Message to start a conversation." cta_url="/explore/" cta_label="Find people" %}
+  {% include "partials/empty.html" with icon="mail" title="No messages yet" body="Open someone's profile and tap Message to start a conversation." cta_url="/explore/" cta_label="Find people" %}
 {% endfor %}
 {% endblock %}

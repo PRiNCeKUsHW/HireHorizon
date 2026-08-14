@@ -1,197 +1,131 @@
-/* HireHorizon — bold & vibrant UI.
- *
- * A violet-to-gold "Horizon" gradient family carries the brand's energy,
- * against calm neutral surfaces everywhere long-form text actually gets
- * read. Mobile-first: the three-column desktop layout assembles at 768px
- * and 1100px.
- *
- * Fonts are system/substitute stacks on purpose — this app is served from a
- * phone, so no webfont request should stand between a reader and the text.
- * "Bold" is carried by weight, scale, colour and motion instead of a
- * custom typeface.
- *
- * Colour is two layers. The primitives below are raw values and are never
- * used by a component directly; the semantic tokens beneath them are. That
- * indirection is what lets the whole UI flip to a dark theme from one block.
- * The gradient tokens are a third, theme-invariant layer: the brand gradient
- * looks the same in light and dark, the same way the old brand mark did.
- */
+/* ==========================================================================
+   HireHorizon — Design System
+   ==========================================================================
+   A sophisticated dark interface for a text-first social blogging platform.
+   Single source of truth for every visual token; components below reference
+   tokens only, never raw values, so the whole system can be retuned from the
+   :root block.
+
+   Layout: two columns on desktop (compact left nav + content), no permanent
+   right rail. A slim top app bar carries search on wide viewports. Mobile
+   gets a dedicated top bar and bottom tab bar rather than a shrunk desktop
+   layout.
+
+   Fonts are a system stack fronted by Inter/Manrope — both render if
+   installed locally, and the fallback chain (-apple-system, Segoe UI,
+   Roboto…) is visually close enough that no webfont fetch is required. No
+   build step, no external requests.
+   ========================================================================== */
 
 :root {
-  color-scheme: light dark;
+  color-scheme: dark;
 
-  /* PRIMITIVES — raw values, referenced only by the semantic/gradient layers */
+  /* ---- Design tokens: surfaces ------------------------------------- */
+  --bg: #0b0b0d;
+  --surface: #121216;
+  --surface-elevated: #18181d;
+  --surface-elevated-2: #1e1e24;
+  --surface-hover: #1c1c22;
+  --border: #27272d;
+  --border-strong: #34343c;
 
-  /* The Horizon spectrum. Violet and magenta are load-bearing for text (both
-     independently clear 4.5:1 with a white label); orange and gold are
-     decoration only — see the contrast note by --gradient-horizon below for
-     why they can never sit behind a label. */
-  --color-horizon-violet: #7c3aed;
-  --color-horizon-magenta: #c2185b; /* 5.87:1 on white, 5.06:1 on #eeeeee */
-  --color-horizon-rose: #a61257; /* 7.38:1 on white, 6.36:1 on #eeeeee */
-  --color-horizon-orange: #ff6a00; /* decorative only, see below */
-  --color-horizon-gold: #ffb020; /* decorative only, see below */
-  --color-horizon-pink: #ff6fa5; /* 7.20:1 on #121212, 5.81:1 on #262626 */
-  --color-horizon-coral: #ff8a4c; /* 8.02:1 on #121212, 6.48:1 on #262626 */
+  /* ---- Design tokens: text ------------------------------------------ */
+  --text-primary: #f5f5f7;
+  --text-secondary: #a1a1aa;
+  --text-muted: #71717a;
 
-  --color-paper: #ffffff;
-  --color-ink: #363737; /* 11.94:1 on white */
-  --color-charcoal: #232525;
-  --color-slate: #5e5e5e; /* 6.48:1 on white */
-  --color-iron: #8c8c8c; /* 3.36:1 on white — control boundaries */
-  --color-mist: #c8c8c8;
-  --color-cloud: #eeeeee;
-  --color-wash: #f5f5f5;
+  /* ---- Design tokens: accent -----------------------------------------
+     A single violet/magenta family carries every accent job. The flat
+     --accent is used for icons, links, focus rings and active states —
+     anywhere text or a stroke needs to read as "brand" without a gradient
+     fill. --accent-gradient is reserved for primary buttons, the active nav
+     rail and a couple of signature strokes; it never sits behind body text.
+  ---------------------------------------------------------------------- */
+  --accent: #a78bfa;
+  --accent-strong: #c4b5fd;
+  --accent-solid: #8b5cf6;
+  --accent-press: #7c3aed;
+  --accent-on: #ffffff;
+  --accent-gradient: linear-gradient(135deg, #8b5cf6 0%, #d946ef 100%);
+  --accent-gradient-press: linear-gradient(135deg, #7c3aed 0%, #c026d3 100%);
+  --accent-soft: rgba(139, 92, 246, 0.14);
+  --accent-soft-strong: rgba(139, 92, 246, 0.24);
+  --accent-ring: rgba(167, 139, 250, 0.45);
 
-  --color-night: #121212;
-  --color-night-raised: #1a1a1a;
-  --color-night-sunken: #1e1e1e;
-  --color-night-fill: #262626;
-  --color-night-line: #2b2b2b;
-  --color-night-edge: #6b6b6b; /* 3.52:1 on #121212 */
-  --color-fog: #e8e8e8; /* 15.29:1 on #121212 */
-  --color-smoke: #a8a8a8; /* 7.88:1 on #121212, 6.36:1 on #262626 */
+  --danger: #f87171;
+  --danger-soft: rgba(248, 113, 113, 0.12);
+  --danger-border: rgba(248, 113, 113, 0.35);
+  --success: #4ade80;
 
-  /* GRADIENTS — theme-invariant. Two, deliberately, not one:
-     --gradient-cta is the only one ever allowed behind a text label, because
-     both its stops independently clear 4.5:1 against --gradient-on (white):
-     violet 5.70:1, magenta 5.87:1. --gradient-horizon is the full four-stop
-     spectrum and is decoration only — a signature stripe/glow, never text
-     behind it — because no single label colour clears all four stops at
-     once (white-on-orange 2.87:1, white-on-gold 1.83:1; charcoal-on-violet
-     2.70:1, charcoal-on-magenta 2.62:1: every combination fails something). */
-  --gradient-cta: linear-gradient(
-    135deg,
-    var(--color-horizon-violet) 0%,
-    var(--color-horizon-magenta) 100%
-  );
-  --gradient-horizon: linear-gradient(
-    135deg,
-    var(--color-horizon-violet) 0%,
-    var(--color-horizon-magenta) 38%,
-    var(--color-horizon-orange) 72%,
-    var(--color-horizon-gold) 100%
-  );
-  --gradient-on: #ffffff;
+  /* Avatar gradient set — a stable per-user hash picks one (see hh.py), so
+     the feed reads with real colour variety instead of one repeated tone.
+     Every pair independently clears 4.5:1 for white initials on top. */
+  --avatar-0: linear-gradient(135deg, #8b5cf6, #d946ef);
+  --avatar-1: linear-gradient(135deg, #6366f1, #a855f7);
+  --avatar-2: linear-gradient(135deg, #ec4899, #f97316);
+  --avatar-3: linear-gradient(135deg, #7c3aed, #2563eb);
 
-  /* Pre-verified avatar gradient pairs — each pair independently clears
-     4.5:1 against white initials, same discipline as --gradient-cta. */
-  --gradient-avatar-0: linear-gradient(135deg, #7c3aed, #c2185b); /* violet -> magenta */
-  --gradient-avatar-1: linear-gradient(135deg, #a61257, #db2777); /* rose -> hot pink */
-  --gradient-avatar-2: linear-gradient(135deg, #4f46e5, #2563eb); /* indigo -> blue */
-  --gradient-avatar-3: linear-gradient(135deg, #86198f, #5b21b6); /* fuchsia -> violet */
-
-  /* SEMANTIC — light theme. Components reference only these. ----------- */
-
-  --surface-page: var(--color-paper);
-  --surface-raised: var(--color-paper);
-  --surface-sunken: var(--color-wash);
-  --surface-fill: var(--color-cloud);
-  --surface-fill-strong: var(--color-mist);
-
-  --text-primary: var(--color-ink);
-  --text-secondary: var(--color-slate);
-  --text-strong: var(--color-charcoal);
-
-  --border-hairline: var(--color-cloud);
-  --border-control: var(--color-iron);
-
-  /* --accent carries every job that needs contrast as flat text/borders:
-     mentions, focus rings, active indicators, chip borders. Filled chrome
-     (buttons, badges, avatars) uses --gradient-cta instead — see the
-     component rules below for which is which. */
-  --accent: var(--color-horizon-magenta);
-  --accent-press: var(--color-horizon-rose);
-  --accent-on: var(--color-paper);
-
-  --shadow-glow: 0 8px 20px -6px rgba(194, 24, 91, 0.45);
-
-  /* Type — sans everywhere, "bold" comes from weight/scale, not a second
-     typeface. */
-  --font-ui: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
-    "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  --font-display: var(--font-ui);
+  /* ---- Typography ---------------------------------------------------- */
+  --font-ui: "Inter", "Manrope", -apple-system, BlinkMacSystemFont, "Segoe UI",
+    Roboto, "Helvetica Neue", Arial, sans-serif;
   --font-read: var(--font-ui);
-  --font-mono: "JetBrains Mono", "Fira Code", "Source Code Pro", Menlo, Consolas,
+  --font-mono: "JetBrains Mono", "Fira Code", ui-monospace, Menlo, Consolas,
     monospace;
 
-  --text-caption: 12px;
-  --text-meta: 13px;
-  --text-body: 15px;
-  --text-read: 19px;
-  --text-subheading: 20px;
-  --text-heading-sm: 26px;
-  --text-heading: 36px;
+  --text-2xs: 12px;
+  --text-xs: 13px;
+  --text-sm: 14px;
+  --text-base: 16px;
+  --text-md: 17px;
+  --text-lg: 18px;
+  --text-xl: 22px;
+  --text-2xl: 26px;
+  --text-3xl: 32px;
 
   --weight-regular: 400;
   --weight-medium: 500;
   --weight-semibold: 600;
   --weight-bold: 700;
-  --weight-extrabold: 800;
 
-  /* Spacing — 4px base, unchanged from the previous design */
-  --spacing-4: 4px;
-  --spacing-8: 8px;
-  --spacing-12: 12px;
-  --spacing-16: 16px;
-  --spacing-20: 20px;
-  --spacing-24: 24px;
-  --spacing-32: 32px;
+  /* ---- Spacing — 4px base -------------------------------------------- */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
 
-  /* Layout */
-  --page-max-width: 1200px;
-  --nav-width: 200px;
-  --feed-width: 600px;
-  --rail-width: 300px;
-  --tabbar-h: 56px;
+  /* ---- Layout ---------------------------------------------------------*/
+  --nav-width: 240px;
+  --content-width: 640px;
+  --reading-width: 700px;
+  --appbar-h: 64px;
+  --tabbar-h: 60px;
   --touch-min: 44px;
 
-  /* Radius — rounder than before, still exactly four values anywhere */
-  --radius-md: 6px;
-  --radius-lg: 10px;
-  --radius-xl: 14px;
+  /* ---- Radius ---------------------------------------------------------*/
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
   --radius-full: 9999px;
 
-  /* Elevation — buttons get an inset edge; the primary button and FAB also
-     lift with a coloured glow on hover (see .btn--primary, .tabbar__item--cta) */
-  --shadow-inset: rgba(255, 255, 255, 0.2) 0 1px 0 0 inset,
-    rgba(0, 0, 0, 0.1) 0 -1px 0 0 inset;
-  --shadow-float: rgba(0, 0, 0, 0.1) 0 4px 6px -1px,
-    rgba(0, 0, 0, 0.06) 0 2px 4px -1px;
+  /* ---- Elevation --------------------------------------------------- */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 4px 16px -4px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 12px 32px -8px rgba(0, 0, 0, 0.6);
+  --shadow-glow: 0 8px 24px -6px rgba(139, 92, 246, 0.45);
 
-  --speed: 0.18s;
-  --speed-fast: 0.12s;
+  --speed: 0.16s;
+  --speed-fast: 0.1s;
+  --ease: cubic-bezier(0.2, 0.65, 0.3, 1);
 }
 
-/* SEMANTIC — dark theme. Only the semantic layer is reassigned, so every
-   component below inherits the theme without knowing it exists. The
-   gradient tokens above are NOT reassigned here — the brand gradient stays
-   identical in both themes, same as the old brand mark did. */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --surface-page: var(--color-night);
-    --surface-raised: var(--color-night-raised);
-    --surface-sunken: var(--color-night-sunken);
-    --surface-fill: var(--color-night-fill);
-    --surface-fill-strong: #363636;
-
-    --text-primary: var(--color-fog);
-    --text-secondary: var(--color-smoke);
-    --text-strong: var(--color-paper);
-
-    --border-hairline: var(--color-night-line);
-    --border-control: var(--color-night-edge);
-
-    --accent: var(--color-horizon-pink);
-    --accent-press: var(--color-horizon-coral);
-    --accent-on: var(--color-night);
-
-    --shadow-glow: 0 8px 20px -6px rgba(255, 111, 165, 0.35);
-
-    --shadow-inset: rgba(255, 255, 255, 0.12) 0 1px 0 0 inset,
-      rgba(0, 0, 0, 0.3) 0 -1px 0 0 inset;
-  }
-}
+/* ==========================================================================
+   RESET + BASE
+   ========================================================================== */
 
 *,
 *::before,
@@ -207,21 +141,22 @@ html {
 body {
   margin: 0;
   font-family: var(--font-ui);
-  font-size: var(--text-body);
-  line-height: 1.54;
+  font-size: var(--text-base);
+  line-height: 1.5;
   color: var(--text-primary);
-  background: var(--surface-page);
+  background: var(--bg);
   padding-bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom));
   -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
 }
 
 img,
 svg {
   max-width: 100%;
   height: auto;
+  display: block;
 }
 
-/* Removes the 300ms tap delay without disabling pinch-zoom on the page. */
 a,
 button,
 input,
@@ -236,13 +171,7 @@ a {
   color: inherit;
   text-decoration: none;
 }
-a:hover {
-  color: var(--text-strong);
-}
 
-/* Structural links — nav, post titles, author rows, cards — stay unadorned.
-   Links sitting inside running text must not rely on colour alone, so they
-   are underlined wherever prose can appear. */
 .prose a,
 .postdetail__body a,
 .comment__body a,
@@ -250,11 +179,11 @@ a:hover {
 .profile__facts a,
 .bubble__body a,
 .empty__body a,
-.rail__links a,
 .flash a,
 .field small a,
 p.muted a,
 .replying-to a {
+  color: var(--accent-strong);
   text-decoration: underline;
   text-underline-offset: 2px;
 }
@@ -262,8 +191,10 @@ p.muted a,
 h1,
 h2,
 h3 {
-  margin: 0 0 var(--spacing-8);
-  line-height: 1.2;
+  margin: 0 0 var(--space-2);
+  line-height: 1.25;
+  font-weight: var(--weight-bold);
+  letter-spacing: -0.01em;
 }
 
 .muted {
@@ -287,43 +218,124 @@ h3 {
   left: -999px;
   top: 0;
   z-index: 100;
-  background: var(--accent);
+  background: var(--accent-gradient);
   color: var(--accent-on);
-  padding: var(--spacing-8) var(--spacing-16);
+  padding: var(--space-2) var(--space-4);
   border-radius: var(--radius-full);
+  font-weight: var(--weight-semibold);
 }
 .skip-link:focus {
-  left: var(--spacing-8);
-  top: var(--spacing-8);
+  left: var(--space-2);
+  top: var(--space-2);
 }
 
-/* Several controls are deliberately small — a text-only "Follow", a 13px
-   "Reply", the engagement glyphs under a post. Growing the painted box to
-   44px would coarsen the feed, so each of them instead grows its hit area
-   with a transparent ::after overlay that leaves the visual box untouched.
-   Look for that pattern on .action, .linkcta, .linklike, .tabs__item and
-   .btn--sm below. */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
 
-/* LAYOUT ------------------------------------------------------------ */
+.icon {
+  display: inline-block;
+  flex: 0 0 auto;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* ==========================================================================
+   LAYOUT — app bar, sidebar, content, mobile bars
+   ========================================================================== */
+
+.appbar {
+  display: none;
+}
+.appbar__search {
+  display: none;
+}
+.appbar__spacer {
+  flex: 1;
+}
+.appbar__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+.appbar__iconbtn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--touch-min);
+  height: var(--touch-min);
+  border-radius: var(--radius-full);
+  color: var(--text-secondary);
+  transition: background var(--speed) var(--ease), color var(--speed) var(--ease);
+}
+.appbar__iconbtn:hover {
+  background: var(--surface-elevated);
+  color: var(--text-primary);
+}
+.appbar__dot {
+  position: absolute;
+  top: 9px;
+  right: 9px;
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-full);
+  background: var(--accent);
+  border: 2px solid var(--bg);
+}
+
+@media (min-width: 768px) {
+  .appbar {
+    position: sticky;
+    top: 0;
+    z-index: 30;
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+    height: var(--appbar-h);
+    padding: 0 max(var(--space-4), env(safe-area-inset-right)) 0
+      max(var(--space-4), env(safe-area-inset-left));
+    background: rgba(11, 11, 13, 0.85);
+    backdrop-filter: saturate(140%) blur(10px);
+    -webkit-backdrop-filter: saturate(140%) blur(10px);
+    border-bottom: 1px solid var(--border);
+  }
+}
+
+@media (min-width: 1024px) {
+  .appbar {
+    padding-left: var(--space-6);
+    padding-right: var(--space-6);
+  }
+  .appbar__search {
+    display: block;
+    width: 100%;
+    max-width: 420px;
+  }
+}
 
 .shell {
   display: grid;
   grid-template-columns: 1fr;
-  max-width: var(--page-max-width);
+  max-width: 1180px;
   margin: 0 auto;
 }
 
 .main {
   min-width: 0;
   width: 100%;
-  max-width: var(--feed-width);
+  max-width: var(--content-width);
   margin: 0 auto;
-  padding: var(--spacing-16) max(var(--spacing-16), env(safe-area-inset-right))
-    var(--spacing-32) max(var(--spacing-16), env(safe-area-inset-left));
+  padding: var(--space-4) max(var(--space-4), env(safe-area-inset-right))
+    var(--space-8) max(var(--space-4), env(safe-area-inset-left));
 }
 
-.sidebar,
-.rail {
+.sidebar {
   display: none;
 }
 
@@ -333,52 +345,74 @@ h3 {
   }
   .shell {
     grid-template-columns: var(--nav-width) minmax(0, 1fr);
-    gap: var(--spacing-32);
+    gap: var(--space-6);
+    align-items: start;
   }
   .sidebar {
     display: flex;
     flex-direction: column;
     position: sticky;
-    top: 0;
+    top: var(--appbar-h);
     align-self: start;
-    height: 100dvh;
-    padding: var(--spacing-20) var(--spacing-8);
+    height: calc(100dvh - var(--appbar-h));
+    padding: var(--space-5) var(--space-2) var(--space-5) 0;
     overflow-y: auto;
   }
   .main {
-    padding: var(--spacing-24) var(--spacing-8) var(--spacing-32);
+    max-width: var(--content-width);
+    margin: 0;
+    /* Horizontal padding must be >= the negative margin used by .post,
+       .userrow etc. for their hover-background bleed (--space-3), or their
+       edges push past .main and cause horizontal overflow. */
+    padding: var(--space-6) var(--space-4) var(--space-8);
   }
 }
 
-@media (min-width: 1100px) {
+@media (min-width: 1024px) {
   .shell {
-    grid-template-columns: var(--nav-width) minmax(0, 1fr) var(--rail-width);
-  }
-  .rail {
-    display: block;
-    position: sticky;
-    top: 0;
-    align-self: start;
-    height: 100dvh;
-    padding: var(--spacing-20) 0;
-    overflow-y: auto;
-    border-left: 1px solid var(--border-hairline);
-    padding-left: var(--spacing-24);
+    grid-template-columns: var(--nav-width) 1fr;
   }
 }
 
-/* BRAND + LEFT NAV --------------------------------------------------- */
+/* Footer — replaces the old permanent right rail. Small, quiet, appears
+   once at the bottom of the content column. */
+.sitefoot {
+  max-width: var(--content-width);
+  margin: var(--space-8) auto 0;
+  padding: var(--space-5) var(--space-4) var(--space-4);
+  border-top: 1px solid var(--border);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-5);
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+.sitefoot a {
+  color: var(--text-secondary);
+}
+.sitefoot a:hover {
+  color: var(--text-primary);
+}
+@media (min-width: 768px) {
+  .sitefoot {
+    margin-left: 0;
+    padding-left: 0;
+  }
+}
+
+/* ==========================================================================
+   BRAND + SIDEBAR NAV
+   ========================================================================== */
 
 .brand {
   display: flex;
   align-items: center;
-  gap: var(--spacing-8);
-  font-size: var(--text-subheading);
-  font-weight: var(--weight-extrabold);
+  gap: var(--space-2);
+  font-size: var(--text-lg);
+  font-weight: var(--weight-bold);
   letter-spacing: -0.01em;
-  margin-bottom: var(--spacing-24);
-  padding: 0 var(--spacing-12);
-  font-family: var(--font-display);
+  color: var(--text-primary);
 }
 .brand:hover {
   color: var(--text-primary);
@@ -386,15 +420,18 @@ h3 {
 .brand__mark {
   display: grid;
   place-items: center;
-  width: 28px;
-  height: 28px;
-  border-radius: var(--radius-lg);
-  background: var(--gradient-cta);
-  color: var(--gradient-on);
-  font-family: var(--font-ui);
-  font-weight: var(--weight-extrabold);
-  font-size: var(--text-body);
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  background: var(--accent-gradient);
+  color: #fff;
+  font-weight: var(--weight-bold);
+  font-size: var(--text-sm);
   flex: 0 0 auto;
+}
+
+.sidebar__brand {
+  padding: 0 var(--space-3) var(--space-5);
 }
 
 .nav {
@@ -403,81 +440,83 @@ h3 {
   gap: 2px;
 }
 
+.nav__group + .nav__group {
+  margin-top: var(--space-4);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--border);
+}
+
 .nav__item {
   display: flex;
   align-items: center;
-  gap: var(--spacing-12);
-  /* The sidebar appears at 768px, which includes touch tablets, so these
-     are sized as touch targets rather than pointer-only ones. */
+  gap: var(--space-3);
   min-height: var(--touch-min);
-  padding: var(--spacing-8) var(--spacing-12);
-  border-radius: var(--radius-lg);
-  font-size: var(--text-body);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  font-size: var(--text-base);
   font-weight: var(--weight-medium);
-  color: var(--text-primary);
+  color: var(--text-secondary);
   position: relative;
-  transition: background-color var(--speed) ease, color var(--speed) ease;
+  transition: background-color var(--speed) var(--ease), color var(--speed) var(--ease);
 }
 .nav__item:hover {
-  background: var(--surface-sunken);
+  background: var(--surface-elevated);
   color: var(--text-primary);
 }
 .nav__item:active {
-  background: var(--surface-fill);
+  background: var(--surface-elevated-2);
 }
 .nav__item.is-active {
-  color: var(--accent);
+  color: var(--text-primary);
   font-weight: var(--weight-semibold);
+  background: var(--accent-soft);
 }
-/* A small gradient rail on the active item, echoing the brand gradient
-   rather than just recolouring the text. */
-.nav__item.is-active::before {
-  content: "";
-  position: absolute;
-  left: -6px;
-  top: 20%;
-  bottom: 20%;
-  width: 3px;
-  border-radius: var(--radius-full);
-  background: var(--gradient-cta);
+.nav__item.is-active .icon {
+  color: var(--accent);
 }
 .nav__icon {
   width: 20px;
-  text-align: center;
-  font-size: 16px;
+  height: 20px;
   flex: 0 0 auto;
 }
 
 .nav__cta {
-  margin-top: var(--spacing-16);
+  margin-top: var(--space-4);
 }
 
 .badge {
   margin-left: auto;
-  background: var(--gradient-cta);
-  color: var(--gradient-on);
+  background: var(--accent-gradient);
+  color: #fff;
   border-radius: var(--radius-full);
   padding: 0 7px;
-  font-size: var(--text-caption);
+  font-size: var(--text-2xs);
   font-weight: var(--weight-semibold);
   line-height: 18px;
+  min-width: 18px;
+  text-align: center;
 }
 
 .sidebar__me {
+  position: relative;
   display: flex;
   align-items: center;
-  gap: var(--spacing-8);
+  gap: var(--space-2);
   margin-top: auto;
-  padding-top: var(--spacing-16);
-  border-top: 1px solid var(--border-hairline);
-  flex-wrap: wrap;
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  transition: background var(--speed) var(--ease);
+}
+.sidebar__me:hover {
+  background: var(--surface-elevated);
 }
 .sidebar__me-text {
   display: flex;
   flex-direction: column;
   min-width: 0;
-  font-size: var(--text-meta);
+  font-size: var(--text-sm);
   line-height: 1.3;
+  flex: 1;
 }
 .sidebar__me-text strong,
 .sidebar__me-text span {
@@ -485,8 +524,62 @@ h3 {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+.sidebar__me-text span {
+  color: var(--text-muted);
+  font-size: var(--text-xs);
+}
+.sidebar__signout {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-full);
+  background: none;
+  border: 0;
+  padding: 0;
+  color: var(--text-muted);
+  cursor: pointer;
+  flex: 0 0 auto;
+}
+.sidebar__signout:hover {
+  color: var(--danger);
+  background: var(--danger-soft);
+}
 
-/* MOBILE TAB BAR ----------------------------------------------------- */
+/* ==========================================================================
+   MOBILE TOP BAR + BOTTOM TAB BAR
+   ========================================================================== */
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding: var(--space-3) max(var(--space-4), env(safe-area-inset-right))
+    var(--space-3) max(var(--space-4), env(safe-area-inset-left));
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  background: rgba(11, 11, 13, 0.9);
+  backdrop-filter: saturate(140%) blur(10px);
+  -webkit-backdrop-filter: saturate(140%) blur(10px);
+  z-index: 30;
+}
+.topbar__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+.topbar__avatar {
+  line-height: 0;
+}
+@media (min-width: 768px) {
+  .topbar {
+    display: none;
+  }
+}
 
 .tabbar {
   position: fixed;
@@ -501,8 +594,10 @@ h3 {
   padding-bottom: env(safe-area-inset-bottom);
   padding-left: env(safe-area-inset-left);
   padding-right: env(safe-area-inset-right);
-  background: var(--surface-raised);
-  border-top: 1px solid var(--border-hairline);
+  background: rgba(18, 18, 22, 0.92);
+  backdrop-filter: saturate(140%) blur(10px);
+  -webkit-backdrop-filter: saturate(140%) blur(10px);
+  border-top: 1px solid var(--border);
 }
 .tabbar__item {
   flex: 1;
@@ -510,42 +605,50 @@ h3 {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 2px;
+  gap: 3px;
   min-height: 48px;
-  font-size: 16px;
-  color: var(--text-secondary);
+  color: var(--text-muted);
   position: relative;
-  transition: color var(--speed) ease;
+  transition: color var(--speed) var(--ease);
+}
+.tabbar__item .icon {
+  width: 22px;
+  height: 22px;
 }
 .tabbar__item:active {
   opacity: 0.6;
 }
 .tabbar__item.is-active {
+  color: var(--text-primary);
+}
+.tabbar__item.is-active .icon {
   color: var(--accent);
 }
 .tabbar__label {
-  font-size: var(--text-caption);
+  font-size: 11px;
   font-weight: var(--weight-medium);
   line-height: 1.2;
 }
 .tabbar__item--cta {
   flex: 0 0 auto;
-  width: var(--touch-min);
-  height: var(--touch-min);
+  width: 46px;
+  height: 46px;
   border-radius: var(--radius-full);
-  background: var(--gradient-cta);
-  color: var(--gradient-on);
-  box-shadow: var(--shadow-inset);
-  transition: transform var(--speed-fast) ease, box-shadow var(--speed) ease;
+  background: var(--accent-gradient);
+  color: #fff;
+  box-shadow: var(--shadow-glow);
+  transition: transform var(--speed-fast) var(--ease);
 }
-.tabbar__item--cta:hover {
-  color: var(--gradient-on);
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-inset), var(--shadow-glow);
+.tabbar__item--cta .icon {
+  width: 22px;
+  height: 22px;
+}
+.tabbar__item--cta:active {
+  transform: scale(0.94);
 }
 .badge--dot {
   position: absolute;
-  top: 6px;
+  top: 2px;
   right: 26%;
   width: 7px;
   height: 7px;
@@ -554,94 +657,66 @@ h3 {
   background: var(--accent);
 }
 
-/* Must come after the .tabbar base rule: an equal-specificity display:none
-   placed earlier in the file would simply be overridden by it. */
 @media (min-width: 768px) {
   .tabbar {
     display: none;
   }
 }
 
-/* MOBILE HEADER ------------------------------------------------------ */
-
-.topbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--spacing-8);
-  padding: var(--spacing-12) max(var(--spacing-16), env(safe-area-inset-right))
-    var(--spacing-12) max(var(--spacing-16), env(safe-area-inset-left));
-  border-bottom: 1px solid var(--border-hairline);
-  position: sticky;
-  top: 0;
-  background: var(--surface-raised);
-  z-index: 30;
-}
-.topbar .brand {
-  margin: 0;
-  padding: 0;
-}
-.topbar__actions {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-12);
-}
-.topbar__avatar {
-  line-height: 0; /* avoid extra height from the avatar's inline box */
-}
-@media (min-width: 768px) {
-  .topbar {
-    display: none;
-  }
-}
-
-/* BUTTONS ------------------------------------------------------------ */
+/* ==========================================================================
+   BUTTONS
+   ========================================================================== */
 
 .btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: var(--spacing-8);
-  padding: var(--spacing-8) var(--spacing-20);
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-5);
   border: 1px solid transparent;
   border-radius: var(--radius-full);
   font-family: var(--font-ui);
-  font-size: var(--text-body);
+  font-size: var(--text-base);
   font-weight: var(--weight-semibold);
   line-height: 1.4;
   cursor: pointer;
   min-height: var(--touch-min);
-  transition: background-color var(--speed) ease, color var(--speed) ease,
-    border-color var(--speed) ease, transform var(--speed-fast) ease,
-    box-shadow var(--speed) ease;
+  color: var(--text-primary);
+  background: transparent;
+  transition: background-color var(--speed) var(--ease), color var(--speed) var(--ease),
+    border-color var(--speed) var(--ease), transform var(--speed-fast) var(--ease),
+    box-shadow var(--speed) var(--ease);
 }
 .btn:active {
   transform: scale(0.98);
 }
 
 .btn--primary {
-  background: var(--gradient-cta);
-  color: var(--gradient-on);
-  box-shadow: var(--shadow-inset);
+  background: var(--accent-gradient);
+  color: #fff;
+  box-shadow: 0 1px 0 0 rgba(255, 255, 255, 0.15) inset;
 }
 .btn--primary:hover {
-  color: var(--gradient-on);
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-inset), var(--shadow-glow);
+  color: #fff;
+  box-shadow: 0 1px 0 0 rgba(255, 255, 255, 0.15) inset, var(--shadow-glow);
 }
 
+.btn--secondary,
 .btn--ghost {
-  background: var(--surface-fill);
+  background: var(--surface-elevated);
+  border-color: var(--border);
   color: var(--text-primary);
 }
+.btn--secondary:hover,
 .btn--ghost:hover {
-  background: var(--surface-fill-strong);
+  background: var(--surface-elevated-2);
+  border-color: var(--border-strong);
   color: var(--text-primary);
 }
 
 .btn--outline {
   background: transparent;
-  border-color: var(--border-control);
+  border-color: var(--border-strong);
   color: var(--text-primary);
 }
 .btn--outline:hover {
@@ -650,24 +725,23 @@ h3 {
 }
 
 .btn--danger {
-  background: transparent;
-  border-color: var(--border-control);
-  color: var(--text-strong);
+  background: var(--danger-soft);
+  border-color: var(--danger-border);
+  color: var(--danger);
 }
 .btn--danger:hover {
-  border-color: var(--accent);
-  color: var(--accent);
+  background: rgba(248, 113, 113, 0.2);
+  border-color: var(--danger);
+  color: var(--danger);
 }
 
 .btn--block {
   width: 100%;
 }
-/* Keeps the compact pill look while the ::after overlay carries the 44px
-   hit area — see .touch-target above. */
 .btn--sm {
-  padding: 6px var(--spacing-16);
+  padding: 6px var(--space-4);
   min-height: 34px;
-  font-size: var(--text-meta);
+  font-size: var(--text-sm);
   position: relative;
 }
 .btn--sm::after {
@@ -679,6 +753,10 @@ h3 {
   transform: translateY(-50%);
   height: var(--touch-min);
 }
+.btn .icon {
+  width: 16px;
+  height: 16px;
+}
 .btn.is-disabled {
   opacity: 0.45;
   pointer-events: none;
@@ -688,7 +766,6 @@ h3 {
   pointer-events: none;
 }
 
-/* Text-only accent call to action, as on each feed row */
 .linkcta {
   position: relative;
   display: inline-flex;
@@ -697,11 +774,11 @@ h3 {
   border: 0;
   padding: 0;
   font-family: var(--font-ui);
-  font-size: var(--text-body);
+  font-size: var(--text-base);
   font-weight: var(--weight-semibold);
   color: var(--accent);
   cursor: pointer;
-  transition: color var(--speed) ease;
+  transition: color var(--speed) var(--ease);
 }
 .linkcta::after {
   content: "";
@@ -713,7 +790,7 @@ h3 {
   height: var(--touch-min);
 }
 .linkcta:hover {
-  color: var(--accent-press);
+  color: var(--accent-strong);
 }
 .linkcta:active {
   opacity: 0.7;
@@ -727,10 +804,10 @@ h3 {
   border: 0;
   padding: 0;
   font: inherit;
-  font-size: var(--text-meta);
+  font-size: var(--text-xs);
   color: var(--text-secondary);
   cursor: pointer;
-  transition: color var(--speed) ease;
+  transition: color var(--speed) var(--ease);
 }
 .linklike::after {
   content: "";
@@ -742,78 +819,81 @@ h3 {
   height: var(--touch-min);
 }
 .linklike:hover {
-  color: var(--text-strong);
+  color: var(--text-primary);
 }
 .linklike:active {
   opacity: 0.7;
 }
 .linklike--danger:hover {
-  color: var(--accent);
+  color: var(--danger);
 }
 .inline-form {
   display: inline-flex;
 }
 
-:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
-}
-
-/* PAGE HEADINGS ------------------------------------------------------ */
+/* ==========================================================================
+   PAGE HEADINGS + SECTIONS
+   ========================================================================== */
 
 .pagehead {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--spacing-12);
-  padding-bottom: var(--spacing-16);
-  margin-bottom: var(--spacing-16);
-  border-bottom: 1px solid var(--border-hairline);
+  gap: var(--space-3);
+  padding-bottom: var(--space-4);
+  margin-bottom: var(--space-5);
+  border-bottom: 1px solid var(--border);
   flex-wrap: wrap;
 }
 .pagehead__title {
-  font-family: var(--font-display);
-  font-size: var(--text-heading-sm);
-  font-weight: var(--weight-extrabold);
-  letter-spacing: -0.01em;
+  font-size: var(--text-2xl);
+  font-weight: var(--weight-bold);
+  letter-spacing: -0.015em;
   line-height: 1.2;
   margin: 0;
+  color: var(--text-primary);
+}
+.pagehead__lede {
+  font-size: var(--text-base);
+  color: var(--text-secondary);
+  margin: 4px 0 0;
 }
 
+.section {
+  margin-top: var(--space-8);
+}
 .section__title {
-  font-family: var(--font-display);
-  font-size: var(--text-subheading);
+  font-size: var(--text-lg);
   font-weight: var(--weight-bold);
-  margin-bottom: var(--spacing-12);
+  margin-bottom: var(--space-3);
+  color: var(--text-primary);
 }
 
-/* AVATAR — initials only, no uploads anywhere in the product. Background is
-   a gradient picked from a small set via a stable per-user hash (see
-   apps/core/templatetags/hh.py), so the feed reads with real colour variety
-   instead of one repeated flat tone. */
+/* ==========================================================================
+   AVATAR
+   ========================================================================== */
 
 .avatar {
   display: inline-grid;
   place-items: center;
   flex: 0 0 auto;
   border-radius: var(--radius-full);
-  background: var(--gradient-cta);
-  color: var(--gradient-on);
-  font-family: var(--font-ui);
+  background: var(--accent-gradient);
+  color: #fff;
   font-weight: var(--weight-bold);
   line-height: 1;
 }
 .avatar--hue-0 {
-  background: var(--gradient-avatar-0);
+  background: var(--avatar-0);
 }
 .avatar--hue-1 {
-  background: var(--gradient-avatar-1);
+  background: var(--avatar-1);
 }
 .avatar--hue-2 {
-  background: var(--gradient-avatar-2);
+  background: var(--avatar-2);
 }
 .avatar--hue-3 {
-  background: var(--gradient-avatar-3);
+  background: var(--avatar-3);
 }
 .avatar--xs {
   width: 24px;
@@ -821,27 +901,34 @@ h3 {
   font-size: 10px;
 }
 .avatar--sm {
-  width: 32px;
-  height: 32px;
-  font-size: var(--text-caption);
+  width: 36px;
+  height: 36px;
+  font-size: var(--text-xs);
 }
 .avatar--md {
-  width: 40px;
-  height: 40px;
-  font-size: var(--text-meta);
+  width: 44px;
+  height: 44px;
+  font-size: var(--text-sm);
 }
 .avatar--lg {
-  width: 64px;
-  height: 64px;
-  font-size: var(--text-subheading);
+  width: 76px;
+  height: 76px;
+  font-size: var(--text-xl);
 }
 
-/* FEED POST — no card chrome, hairline separated -------------------- */
+/* ==========================================================================
+   FEED / POST CARD — editorial rows, no heavy card chrome
+   ========================================================================== */
 
 .post {
-  padding-bottom: var(--spacing-24);
-  margin-bottom: var(--spacing-24);
-  border-bottom: 1px solid var(--border-hairline);
+  padding: var(--space-5) var(--space-3);
+  margin: 0 calc(var(--space-3) * -1);
+  border-bottom: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  transition: background-color var(--speed) var(--ease);
+}
+.post:hover {
+  background: var(--surface);
 }
 .post:last-of-type {
   border-bottom: 0;
@@ -851,13 +938,13 @@ h3 {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--spacing-8);
-  margin-bottom: var(--spacing-12);
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
 }
 .post__author {
   display: flex;
   align-items: center;
-  gap: var(--spacing-8);
+  gap: var(--space-2);
   min-width: 0;
 }
 .post__names {
@@ -867,12 +954,13 @@ h3 {
   line-height: 1.3;
 }
 .post__names strong {
-  font-size: var(--text-body);
+  font-size: var(--text-sm);
   font-weight: var(--weight-semibold);
+  color: var(--text-primary);
 }
 .post__names span {
-  font-size: var(--text-meta);
-  color: var(--text-secondary);
+  font-size: var(--text-xs);
+  color: var(--text-muted);
 }
 .post__names strong,
 .post__names span {
@@ -881,59 +969,59 @@ h3 {
   white-space: nowrap;
 }
 .post__head time {
-  font-size: var(--text-meta);
-  color: var(--text-secondary);
+  font-size: var(--text-xs);
+  color: var(--text-muted);
   white-space: nowrap;
 }
-/* Timestamp and Follow sit together rather than replacing one another, so a
-   post never loses its date just because you don't follow the author. */
 .post__aside {
   display: flex;
   align-items: center;
-  gap: var(--spacing-12);
+  gap: var(--space-3);
   flex: 0 0 auto;
 }
 
-/* Titles are user-written and can be a single unbroken string, so they must
-   be able to break on their own (no overflow masking upstream). */
 .post__title {
-  font-family: var(--font-display);
-  font-size: var(--text-heading-sm);
-  font-weight: var(--weight-extrabold);
+  font-size: var(--text-xl);
+  font-weight: var(--weight-bold);
   letter-spacing: -0.01em;
-  line-height: 1.2;
-  margin: 0 0 var(--spacing-8);
+  line-height: 1.3;
+  margin: 0 0 var(--space-1);
   overflow-wrap: anywhere;
+  color: var(--text-primary);
 }
 .post__title a:hover {
-  color: var(--text-strong);
+  color: var(--accent-strong);
 }
 
 .post__excerpt {
   font-family: var(--font-read);
-  font-size: var(--text-read);
+  font-size: var(--text-md);
   line-height: 1.55;
-  color: var(--text-primary);
-  margin: 0 0 var(--spacing-12);
+  color: var(--text-secondary);
+  margin: 0 0 var(--space-3);
   overflow-wrap: anywhere;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .post__meta {
   display: flex;
-  gap: var(--spacing-8);
-  font-size: var(--text-caption);
-  color: var(--text-secondary);
+  gap: var(--space-2);
+  font-size: var(--text-2xs);
+  color: var(--text-muted);
   flex-wrap: wrap;
-  margin-bottom: var(--spacing-8);
+  margin-bottom: var(--space-1);
 }
 
 .chip {
   display: inline-block;
-  padding: 1px var(--spacing-8);
+  padding: 1px var(--space-2);
   border-radius: var(--radius-full);
-  font-size: var(--text-caption);
+  font-size: var(--text-2xs);
   font-weight: var(--weight-medium);
-  border: 1px solid var(--border-control);
+  border: 1px solid var(--border-strong);
   color: var(--text-secondary);
 }
 .chip--draft {
@@ -941,37 +1029,40 @@ h3 {
   color: var(--accent);
 }
 
-/* ENGAGEMENT ROW ----------------------------------------------------- */
+/* ==========================================================================
+   ENGAGEMENT ROW
+   ========================================================================== */
 
 .actions {
   display: flex;
   align-items: center;
-  /* 20px rather than 16px so the 44px hit overlays below still clear the
-     8px minimum separation between adjacent touch targets. */
-  gap: var(--spacing-20);
-  margin-top: var(--spacing-12);
+  gap: var(--space-5);
+  margin-top: var(--space-3);
 }
-/* On a full post the action row reads as a footer, so it gets a rule above. */
 .postdetail .actions {
-  margin-top: var(--spacing-24);
-  padding-top: var(--spacing-16);
-  border-top: 1px solid var(--border-hairline);
+  margin-top: var(--space-6);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--border);
 }
 .action {
   position: relative;
   display: inline-flex;
   align-items: center;
-  gap: var(--spacing-8);
+  gap: 6px;
   background: none;
   border: 0;
-  padding: var(--spacing-4) 0;
+  padding: var(--space-1) 0;
   font-family: var(--font-ui);
-  font-size: var(--text-meta);
-  color: var(--text-secondary);
+  font-size: var(--text-xs);
+  color: var(--text-muted);
   cursor: pointer;
   min-height: 32px;
   transform: scale(1);
-  transition: color var(--speed) ease, transform var(--speed-fast) ease;
+  transition: color var(--speed) var(--ease), transform var(--speed-fast) var(--ease);
+}
+.action .icon {
+  width: 18px;
+  height: 18px;
 }
 .action::after {
   content: "";
@@ -988,12 +1079,12 @@ h3 {
 .action:active {
   opacity: 0.6;
 }
-/* A permanent, slightly larger scale marks the active state rather than a
-   one-shot animation, so a feed that loads with posts already liked doesn't
-   replay a "pop" on every card. */
 .action.is-on {
   color: var(--accent);
-  transform: scale(1.08);
+  transform: scale(1.06);
+}
+.action.is-on .icon {
+  fill: currentColor;
 }
 .action--end {
   margin-left: auto;
@@ -1002,50 +1093,55 @@ h3 {
   font-variant-numeric: tabular-nums;
 }
 
-/* POST DETAIL -------------------------------------------------------- */
+/* ==========================================================================
+   POST DETAIL — narrow, highly readable
+   ========================================================================== */
 
+.postdetail {
+  max-width: var(--reading-width);
+}
 .postdetail__head {
   display: flex;
   justify-content: space-between;
-  gap: var(--spacing-12);
+  gap: var(--space-3);
   align-items: flex-start;
   flex-wrap: wrap;
 }
 .postdetail__owner {
   display: flex;
-  gap: var(--spacing-8);
+  gap: var(--space-2);
 }
 .postdetail__title {
-  font-family: var(--font-display);
-  font-size: var(--text-heading);
-  font-weight: var(--weight-extrabold);
+  font-size: var(--text-3xl);
+  font-weight: var(--weight-bold);
   letter-spacing: -0.02em;
-  line-height: 1.15;
-  margin: var(--spacing-16) 0 var(--spacing-8);
+  line-height: 1.2;
+  margin: var(--space-4) 0 var(--space-2);
   overflow-wrap: anywhere;
+  color: var(--text-primary);
 }
 .postdetail__meta {
   display: flex;
-  gap: var(--spacing-8);
-  font-size: var(--text-meta);
-  color: var(--text-secondary);
+  gap: var(--space-2);
+  font-size: var(--text-xs);
+  color: var(--text-muted);
   flex-wrap: wrap;
   align-items: center;
-  padding-bottom: var(--spacing-16);
-  border-bottom: 1px solid var(--border-hairline);
+  padding-bottom: var(--space-4);
+  border-bottom: 1px solid var(--border);
 }
 .postdetail__body {
   font-family: var(--font-read);
-  font-size: var(--text-read);
-  line-height: 1.6;
-  margin: var(--spacing-24) 0;
+  font-size: var(--text-md);
+  line-height: 1.75;
+  color: var(--text-primary);
+  margin: var(--space-6) 0;
   overflow-wrap: anywhere;
 }
 .postdetail__body p {
-  margin: 0 0 1em;
+  margin: 0 0 1.1em;
 }
 
-/* Underlined as well as coloured, so it is not distinguished by colour alone. */
 .mention {
   color: var(--accent);
   font-weight: var(--weight-semibold);
@@ -1053,169 +1149,164 @@ h3 {
   text-underline-offset: 2px;
 }
 
-/* SECTIONS + CARDS (sidebar, forms) ---------------------------------- */
+/* Related posts — closes out the reading experience with a few more picks
+   rather than leaving the page to end abruptly after the comments. */
+.related {
+  margin-top: var(--space-8);
+  padding-top: var(--space-6);
+  border-top: 1px solid var(--border);
+  max-width: var(--reading-width);
+}
+.related__list {
+  display: grid;
+  gap: var(--space-2);
+}
+.related__item {
+  display: block;
+  padding: var(--space-3);
+  margin: 0 calc(var(--space-3) * -1);
+  border-radius: var(--radius-md);
+  transition: background-color var(--speed) var(--ease);
+}
+.related__item:hover {
+  background: var(--surface-elevated);
+}
+.related__item strong {
+  display: block;
+  font-size: var(--text-base);
+  font-weight: var(--weight-semibold);
+  color: var(--text-primary);
+  margin-bottom: 2px;
+}
+.related__item span {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+
+/* ==========================================================================
+   CARDS
+   ========================================================================== */
 
 .card {
   position: relative;
-  background: var(--surface-raised);
-  border: 1px solid var(--border-hairline);
-  border-radius: var(--radius-xl);
-  padding: var(--spacing-20);
-  margin-bottom: var(--spacing-16);
-  overflow: hidden;
-}
-/* The signature "horizon stripe": a thin slice of the full brand gradient
-   along the top edge of every boxed surface. Decorative only — see the
-   --gradient-horizon contrast note at the top of the file for why this
-   never sits behind text. */
-.card::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 3px;
-  background: var(--gradient-horizon);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6);
+  margin-bottom: var(--space-4);
 }
 .card--flat {
   border: 0;
   padding: 0;
-  overflow: visible;
-}
-.card--flat::before {
-  content: none;
+  background: transparent;
 }
 
-.section {
-  margin-top: var(--spacing-32);
-}
-
-/* HERO --------------------------------------------------------------- */
+/* ==========================================================================
+   HERO (logged-out landing)
+   ========================================================================== */
 
 .hero {
   position: relative;
-  padding: var(--spacing-32) 0 var(--spacing-24);
-  border-bottom: 1px solid var(--border-hairline);
-  margin-bottom: var(--spacing-32);
-  overflow: hidden;
-}
-.hero::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 4px;
-  background: var(--gradient-horizon);
-}
-/* A soft, low-opacity glow behind the copy. Contrast is protected by the
-   opacity margin: text on this surface already reads well above 10:1
-   against --surface-page, so a ~0.12-0.2 opacity wash behind it can't pull
-   the blended background anywhere near the 4.5:1 floor. */
-.hero::after {
-  content: "";
-  position: absolute;
-  top: -20%;
-  right: -10%;
-  width: 60%;
-  height: 140%;
-  background: var(--gradient-horizon);
-  opacity: 0.12;
-  filter: blur(60px);
-  pointer-events: none;
-  z-index: -1;
-}
-@media (prefers-color-scheme: dark) {
-  .hero::after {
-    opacity: 0.2;
-  }
+  padding: var(--space-8) 0 var(--space-6);
+  margin-bottom: var(--space-6);
+  border-bottom: 1px solid var(--border);
 }
 .hero__eyebrow {
   display: inline-block;
-  font-size: var(--text-meta);
+  font-size: var(--text-xs);
   font-weight: var(--weight-semibold);
-  color: var(--gradient-on);
-  background: var(--gradient-cta);
-  margin: 0 0 var(--spacing-12);
-  padding: var(--spacing-4) var(--spacing-12);
+  color: var(--accent-strong);
+  background: var(--accent-soft);
+  margin: 0 0 var(--space-3);
+  padding: var(--space-1) var(--space-3);
   border-radius: var(--radius-full);
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+  letter-spacing: 0.02em;
 }
 .hero__title {
-  font-family: var(--font-display);
-  font-size: var(--text-heading);
-  font-weight: var(--weight-extrabold);
+  font-size: var(--text-3xl);
+  font-weight: var(--weight-bold);
   letter-spacing: -0.02em;
-  line-height: 1.1;
-  margin: 0 0 var(--spacing-12);
+  line-height: 1.15;
+  margin: 0 0 var(--space-3);
+  color: var(--text-primary);
 }
 .hero__lede {
   font-family: var(--font-read);
-  font-size: var(--text-read);
-  line-height: 1.5;
+  font-size: var(--text-md);
+  line-height: 1.55;
   color: var(--text-secondary);
-  max-width: 46ch;
-  margin: 0 0 var(--spacing-24);
+  max-width: 48ch;
+  margin: 0 0 var(--space-6);
 }
 .hero__actions {
   display: flex;
-  gap: var(--spacing-12);
+  gap: var(--space-3);
   flex-wrap: wrap;
 }
 
-/* PROSE -------------------------------------------------------------- */
+/* ==========================================================================
+   PROSE (about page etc.)
+   ========================================================================== */
 
 .prose {
   font-family: var(--font-read);
-  font-size: var(--text-read);
-  line-height: 1.6;
+  font-size: var(--text-md);
+  line-height: 1.7;
+  color: var(--text-primary);
 }
 .prose h2 {
-  font-family: var(--font-display);
-  font-size: var(--text-heading-sm);
+  font-size: var(--text-xl);
   font-weight: var(--weight-bold);
-  margin-top: 1.1em;
+  margin-top: 1.2em;
+  color: var(--text-primary);
 }
 .prose .lede {
-  font-size: var(--text-subheading);
+  font-size: var(--text-lg);
   color: var(--text-secondary);
 }
 .prose ul {
-  padding-left: 1.1em;
+  padding-left: 1.2em;
+  color: var(--text-secondary);
 }
 .prose code {
   font-family: var(--font-mono);
   font-size: 14px;
-  letter-spacing: -0.014em;
-  background: var(--surface-fill);
-  padding: 1px 5px;
-  border-radius: var(--radius-md);
+  letter-spacing: -0.01em;
+  background: var(--surface-elevated);
+  padding: 1px 6px;
+  border-radius: var(--radius-sm);
+  color: var(--accent-strong);
 }
 
-/* FORMS -------------------------------------------------------------- */
+/* ==========================================================================
+   FORMS
+   ========================================================================== */
 
 .form {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-16);
+  gap: var(--space-4);
 }
 .field {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-4);
+  gap: 6px;
 }
 .field label {
-  font-size: var(--text-meta);
+  font-size: var(--text-sm);
   font-weight: var(--weight-semibold);
+  color: var(--text-primary);
 }
 .field small {
-  font-size: var(--text-caption);
-  color: var(--text-secondary);
+  font-size: var(--text-xs);
+  color: var(--text-muted);
 }
 .field__error {
-  color: var(--accent);
-  font-size: var(--text-meta);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--danger);
+  font-size: var(--text-xs);
   font-weight: var(--weight-medium);
 }
 
@@ -1227,51 +1318,65 @@ input[type="search"],
 textarea,
 select {
   width: 100%;
-  padding: var(--spacing-8) var(--spacing-12);
-  border: 1px solid var(--border-control);
-  border-radius: var(--radius-xl);
-  background: var(--surface-raised);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  background: var(--surface-elevated);
   color: var(--text-primary);
   font-family: var(--font-ui);
   /* 16px stops iOS zooming the page when a field takes focus */
   font-size: 16px;
   line-height: 1.5;
   min-height: var(--touch-min);
+  transition: border-color var(--speed) var(--ease), background var(--speed) var(--ease);
 }
 input::placeholder,
 textarea::placeholder {
-  color: var(--text-secondary);
+  color: var(--text-muted);
+}
+input:hover,
+textarea:hover,
+select:hover {
+  border-color: var(--border-strong);
 }
 input:focus,
 textarea:focus,
 select:focus {
   border-color: var(--accent);
+  background: var(--surface-elevated-2);
 }
-/* The previous rule here was `input:focus { outline: none }`, which at
-   specificity (0,1,1) beat the global :focus-visible (0,1,0) and left every
-   text field in the app with no focus ring at all. Scoping to :focus-visible
-   keeps the border cue and restores the ring. */
 input:focus-visible,
 textarea:focus-visible,
 select:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
+  outline: 2px solid var(--accent-ring);
+  outline-offset: 0;
+}
+input[aria-invalid="true"],
+textarea[aria-invalid="true"] {
+  border-color: var(--danger);
 }
 input[type="search"] {
   border-radius: var(--radius-full);
 }
 textarea {
   resize: vertical;
-  min-height: 84px;
+  min-height: 100px;
   font-family: var(--font-read);
   font-size: 16px;
   line-height: 1.5;
+}
+select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23a1a1aa' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right var(--space-3) center;
+  padding-right: var(--space-8);
 }
 
 .form--inline {
   flex-direction: row;
   align-items: flex-end;
-  gap: var(--spacing-8);
+  gap: var(--space-2);
   flex-wrap: wrap;
 }
 .form--inline textarea {
@@ -1281,56 +1386,175 @@ textarea {
 }
 .form__actions {
   display: flex;
-  gap: var(--spacing-12);
+  gap: var(--space-3);
   flex-wrap: wrap;
 }
-/* :not([hidden]) rather than a bare .replying-to: an unscoped `display: flex`
-   here has equal specificity to the UA stylesheet's `[hidden]{display:none}`
-   and wins on source order, so the banner rendered even while hidden. */
 .replying-to:not([hidden]) {
   width: 100%;
-  font-size: var(--text-meta);
+  font-size: var(--text-xs);
   color: var(--text-secondary);
   margin: 0;
   display: flex;
   align-items: center;
-  gap: var(--spacing-8);
+  gap: var(--space-2);
 }
 
 .searchbar {
   display: flex;
-  gap: var(--spacing-8);
-  margin-bottom: var(--spacing-16);
+  gap: var(--space-2);
+  margin-bottom: var(--space-5);
+}
+.searchbox {
+  position: relative;
+  flex: 1;
+}
+.searchbox .icon {
+  position: absolute;
+  left: var(--space-3);
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  pointer-events: none;
+}
+.searchbox input {
+  padding-left: 42px;
+}
+.appbar__search .searchbox input {
+  background: var(--surface-elevated);
+  border-color: var(--border);
 }
 
-/* TABS --------------------------------------------------------------- */
+/* ==========================================================================
+   EDITOR (create / edit post)
+   ========================================================================== */
+
+.editor {
+  max-width: var(--reading-width);
+}
+.editor__toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-bottom: var(--space-6);
+}
+.editor__back {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  background: none;
+  border: 0;
+  cursor: pointer;
+  padding: var(--space-2) var(--space-2) var(--space-2) 0;
+}
+.editor__back:hover {
+  color: var(--text-primary);
+}
+.editor__actions {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.editor__field {
+  margin-bottom: var(--space-2);
+}
+.editor__title {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  padding: var(--space-2) 0;
+  font-size: var(--text-3xl);
+  font-weight: var(--weight-bold);
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+  min-height: unset;
+}
+.editor__title::placeholder {
+  color: var(--text-muted);
+}
+.editor__title:focus,
+.editor__title:focus-visible {
+  outline: none;
+  border: 0;
+  background: transparent;
+}
+
+.editor__content {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  padding: var(--space-3) 0;
+  font-family: var(--font-read);
+  font-size: var(--text-lg);
+  line-height: 1.7;
+  color: var(--text-primary);
+  min-height: 40vh;
+  resize: vertical;
+}
+.editor__content::placeholder {
+  color: var(--text-muted);
+}
+.editor__content:focus,
+.editor__content:focus-visible {
+  outline: none;
+  border: 0;
+  background: transparent;
+}
+
+.editor__divider {
+  border: 0;
+  border-top: 1px solid var(--border);
+  margin: var(--space-2) 0 var(--space-5);
+}
+
+.editor__status {
+  display: none;
+}
+
+.editor__note {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  margin: var(--space-2) 0 var(--space-6);
+}
+.editor__note .icon {
+  width: 15px;
+  height: 15px;
+  flex: 0 0 auto;
+}
+
+/* ==========================================================================
+   TABS
+   ========================================================================== */
 
 .tabs {
   display: flex;
-  gap: var(--spacing-20);
-  margin-bottom: var(--spacing-24);
-  border-bottom: 1px solid var(--border-hairline);
+  gap: var(--space-5);
+  margin-bottom: var(--space-6);
+  border-bottom: 1px solid var(--border);
   overflow-x: auto;
   scrollbar-width: none;
 }
 .tabs::-webkit-scrollbar {
   display: none;
 }
-/* Sized to 44px directly rather than with an ::after overlay: .tabs is an
-   overflow-x scroller, and an overlay taller than its row would have given
-   it a vertical scrollbar too. */
 .tabs__item {
   display: flex;
   align-items: center;
   min-height: var(--touch-min);
-  padding: 0 0 var(--spacing-12);
-  font-size: var(--text-body);
+  padding: 0 0 var(--space-3);
+  font-size: var(--text-base);
   font-weight: var(--weight-semibold);
-  color: var(--text-secondary);
+  color: var(--text-muted);
   white-space: nowrap;
   border-bottom: 2px solid transparent;
   margin-bottom: -1px;
-  transition: color var(--speed) ease;
+  transition: color var(--speed) var(--ease);
 }
 .tabs__item:hover {
   color: var(--text-primary);
@@ -1340,21 +1564,26 @@ textarea {
   border-bottom-color: var(--accent);
 }
 
-/* USER ROWS ---------------------------------------------------------- */
+/* ==========================================================================
+   USER ROWS
+   ========================================================================== */
 
 .userrow {
   display: flex;
   align-items: center;
-  gap: var(--spacing-12);
-  padding: var(--spacing-12) 0;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  margin: 0 calc(var(--space-3) * -1);
+  border-radius: var(--radius-md);
+  transition: background-color var(--speed) var(--ease);
 }
-.userrow + .userrow {
-  border-top: 1px solid var(--border-hairline);
+.userrow:hover {
+  background: var(--surface-elevated);
 }
 .userrow__main {
   display: flex;
   align-items: center;
-  gap: var(--spacing-8);
+  gap: var(--space-3);
   flex: 1;
   min-width: 0;
 }
@@ -1365,72 +1594,88 @@ textarea {
   line-height: 1.35;
 }
 .userrow__text strong {
-  font-size: var(--text-body);
+  font-size: var(--text-base);
   font-weight: var(--weight-semibold);
+  color: var(--text-primary);
 }
 .userrow__text > span {
-  font-size: var(--text-meta);
-  color: var(--text-secondary);
+  font-size: var(--text-xs);
+  color: var(--text-muted);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 .userrow__bio {
-  font-size: var(--text-caption);
+  font-size: var(--text-2xs);
+  color: var(--text-secondary) !important;
+  white-space: normal !important;
 }
 
-/* PROFILE ------------------------------------------------------------ */
+/* ==========================================================================
+   PROFILE
+   ========================================================================== */
 
 .profile {
-  padding-bottom: var(--spacing-24);
-  border-bottom: 1px solid var(--border-hairline);
-  margin-bottom: var(--spacing-24);
+  padding-bottom: var(--space-6);
+  border-bottom: 1px solid var(--border);
+  margin-bottom: var(--space-6);
 }
 .profile__top {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: var(--spacing-12);
+  gap: var(--space-3);
   flex-wrap: wrap;
 }
 .profile__actions {
   display: flex;
-  gap: var(--spacing-8);
+  gap: var(--space-2);
   flex-wrap: wrap;
+  margin-top: var(--space-1);
 }
 .profile__name {
-  font-family: var(--font-display);
-  font-size: var(--text-heading-sm);
-  font-weight: var(--weight-extrabold);
-  letter-spacing: -0.01em;
-  margin: var(--spacing-16) 0 0;
+  font-size: var(--text-2xl);
+  font-weight: var(--weight-bold);
+  letter-spacing: -0.015em;
+  margin: var(--space-4) 0 0;
+  color: var(--text-primary);
 }
 .profile__handle {
-  font-size: var(--text-meta);
-  color: var(--text-secondary);
-  margin: 0 0 var(--spacing-8);
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  margin: 2px 0 var(--space-3);
 }
 .profile__bio {
-  margin: 0 0 var(--spacing-12);
+  margin: 0 0 var(--space-3);
   overflow-wrap: anywhere;
+  color: var(--text-primary);
 }
 .profile__facts {
-  font-size: var(--text-meta);
-  color: var(--text-secondary);
+  font-size: var(--text-xs);
+  color: var(--text-muted);
   display: flex;
-  gap: var(--spacing-8);
+  align-items: center;
+  gap: var(--space-4);
   flex-wrap: wrap;
-  margin: 0 0 var(--spacing-12);
-  /* A pasted website URL is the longest unbroken string on this page. */
+  margin: 0 0 var(--space-4);
   overflow-wrap: anywhere;
   min-width: 0;
 }
+.profile__facts span,
+.profile__facts a {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.profile__facts a:hover {
+  color: var(--accent-strong);
+}
 .profile__stats {
   display: flex;
-  gap: var(--spacing-20);
+  gap: var(--space-5);
   margin: 0;
-  font-size: var(--text-meta);
-  color: var(--text-secondary);
+  font-size: var(--text-sm);
+  color: var(--text-muted);
   flex-wrap: wrap;
 }
 .profile__stats strong {
@@ -1438,36 +1683,41 @@ textarea {
   font-weight: var(--weight-bold);
 }
 
-/* COMMENTS ----------------------------------------------------------- */
+/* ==========================================================================
+   COMMENTS
+   ========================================================================== */
 
 .comments {
-  margin-top: var(--spacing-32);
-  padding-top: var(--spacing-24);
-  border-top: 1px solid var(--border-hairline);
+  margin-top: var(--space-8);
+  padding-top: var(--space-6);
+  border-top: 1px solid var(--border);
+  max-width: var(--reading-width);
 }
 .comments .form--inline {
-  margin-bottom: var(--spacing-8);
+  margin-bottom: var(--space-2);
 }
 
 .comment {
-  padding: var(--spacing-16) 0;
-  border-top: 1px solid var(--border-hairline);
+  padding: var(--space-4) 0;
+  border-top: 1px solid var(--border);
 }
 .comment__author {
   display: flex;
   align-items: center;
-  gap: var(--spacing-8);
-  font-size: var(--text-meta);
+  gap: var(--space-2);
+  font-size: var(--text-xs);
 }
 .comment__author strong {
-  font-size: var(--text-body);
+  font-size: var(--text-sm);
   font-weight: var(--weight-semibold);
+  color: var(--text-primary);
 }
 .comment__body {
-  margin: var(--spacing-8) 0;
+  margin: var(--space-2) 0;
   font-family: var(--font-read);
-  font-size: 17px;
-  line-height: 1.5;
+  font-size: var(--text-base);
+  line-height: 1.55;
+  color: var(--text-primary);
   overflow-wrap: anywhere;
 }
 .comment__body p {
@@ -1475,30 +1725,33 @@ textarea {
 }
 .comment__tools {
   display: flex;
-  gap: var(--spacing-20);
+  gap: var(--space-5);
   align-items: center;
 }
 .comment--reply {
-  margin-left: var(--spacing-20);
-  padding-left: var(--spacing-16);
+  margin-left: var(--space-5);
+  padding-left: var(--space-4);
   border-top: 0;
-  border-left: 2px solid var(--border-hairline);
+  border-left: 2px solid var(--border);
 }
 
-/* MESSAGES + NOTIFICATIONS ------------------------------------------- */
+/* ==========================================================================
+   MESSAGING + NOTIFICATIONS
+   ========================================================================== */
 
 .threadrow,
 .noterow {
   display: flex;
   align-items: center;
-  gap: var(--spacing-12);
-  padding: var(--spacing-16) 0;
-  border-bottom: 1px solid var(--border-hairline);
-  transition: background-color var(--speed) ease;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-3);
+  margin: 0 calc(var(--space-3) * -1);
+  border-radius: var(--radius-md);
+  transition: background-color var(--speed) var(--ease);
 }
 .threadrow:hover,
 .noterow:hover {
-  background: var(--surface-sunken);
+  background: var(--surface-elevated);
 }
 .threadrow__text,
 .noterow__text {
@@ -1511,55 +1764,53 @@ textarea {
 .threadrow__text strong,
 .noterow__text strong {
   font-weight: var(--weight-semibold);
+  color: var(--text-primary);
 }
 .threadrow__text span,
 .noterow__text span {
-  font-size: var(--text-meta);
-  color: var(--text-secondary);
+  font-size: var(--text-xs);
+  color: var(--text-muted);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 .threadrow time,
 .noterow time {
-  font-size: var(--text-caption);
-  color: var(--text-secondary);
+  font-size: var(--text-2xs);
+  color: var(--text-muted);
   white-space: nowrap;
 }
-/* The accent rule is the glance-level cue; the template also carries an
-   sr-only "Unread", so the state is never conveyed by colour alone. */
 .noterow.is-unread {
-  border-left: 2px solid var(--accent);
-  padding-left: var(--spacing-12);
+  background: var(--accent-soft);
+}
+.noterow.is-unread:hover {
+  background: var(--accent-soft-strong);
 }
 
 .chat {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-8);
+  gap: var(--space-2);
   max-height: 60dvh;
   overflow-y: auto;
   overscroll-behavior: contain;
-  padding: var(--spacing-8) 0;
+  padding: var(--space-2) 0;
 }
 .bubble {
   max-width: min(80%, 440px);
-  padding: var(--spacing-8) var(--spacing-12);
-  border-radius: var(--radius-xl);
-  background: var(--surface-fill);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-lg);
+  background: var(--surface-elevated);
   align-self: flex-start;
 }
 .bubble--mine {
   align-self: flex-end;
-  background: var(--gradient-cta);
-  color: var(--gradient-on);
+  background: var(--accent-gradient);
+  color: #fff;
 }
-/* The timestamp used to be a low-opacity label colour, which measured badly
-   against a filled background. It now takes the full label colour and
-   relies on size for hierarchy. */
 .bubble--mine .muted,
 .bubble--mine .bubble__time {
-  color: var(--gradient-on);
+  color: rgba(255, 255, 255, 0.85);
 }
 .bubble__body {
   overflow-wrap: anywhere;
@@ -1569,32 +1820,41 @@ textarea {
 }
 .bubble__time {
   display: block;
-  font-size: var(--text-caption);
+  font-size: var(--text-2xs);
   margin-top: 2px;
 }
 
-/* EMPTY STATES + PAGINATION ------------------------------------------ */
+/* ==========================================================================
+   EMPTY STATES + PAGINATION
+   ========================================================================== */
 
 .empty {
   text-align: center;
-  padding: var(--spacing-32) var(--spacing-16);
+  padding: var(--space-8) var(--space-4);
 }
 .empty__mark {
-  display: block;
-  font-size: var(--text-heading);
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  margin: 0 auto var(--space-4);
+  border-radius: var(--radius-full);
+  background: var(--surface-elevated);
   color: var(--accent);
-  opacity: 0.55;
-  margin-bottom: var(--spacing-8);
+}
+.empty__mark .icon {
+  width: 26px;
+  height: 26px;
 }
 .empty__title {
-  font-family: var(--font-display);
-  font-size: var(--text-heading-sm);
+  font-size: var(--text-lg);
   font-weight: var(--weight-bold);
-  margin-bottom: var(--spacing-4);
+  margin-bottom: var(--space-1);
+  color: var(--text-primary);
 }
 .empty__body {
   max-width: 42ch;
-  margin: 0 auto var(--spacing-16);
+  margin: 0 auto var(--space-5);
   color: var(--text-secondary);
 }
 
@@ -1606,135 +1866,151 @@ textarea {
 .linklist li {
   display: flex;
   flex-direction: column;
-  padding: var(--spacing-12) 0;
-  border-bottom: 1px solid var(--border-hairline);
+  padding: var(--space-3) 0;
+  border-bottom: 1px solid var(--border);
 }
 .linklist li:last-child {
   border-bottom: 0;
 }
 .linklist a {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
   font-weight: var(--weight-semibold);
+  color: var(--text-primary);
+}
+.linklist a:hover {
+  color: var(--accent-strong);
 }
 .linklist span {
-  font-size: var(--text-meta);
+  font-size: var(--text-xs);
+  color: var(--text-muted);
 }
 
 .pager {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--spacing-12);
-  margin-top: var(--spacing-32);
-  padding-top: var(--spacing-16);
-  border-top: 1px solid var(--border-hairline);
+  gap: var(--space-3);
+  margin-top: var(--space-8);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--border);
   flex-wrap: wrap;
 }
 .pager__status {
-  font-size: var(--text-meta);
+  font-size: var(--text-xs);
+  color: var(--text-muted);
 }
 
-/* FLASHES ------------------------------------------------------------ */
+/* ==========================================================================
+   FLASHES
+   ========================================================================== */
 
 .flashes {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-8);
-  margin-bottom: var(--spacing-16);
+  gap: var(--space-2);
+  margin-bottom: var(--space-5);
 }
 .flash {
-  padding: var(--spacing-12) var(--spacing-16);
-  border-radius: var(--radius-xl);
-  background: var(--surface-fill);
-  font-size: var(--text-body);
-  color: var(--text-strong);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  background: var(--surface-elevated);
+  border: 1px solid var(--border);
+  font-size: var(--text-sm);
+  color: var(--text-primary);
 }
-/* Accent is the system's only attention colour, so errors borrow it rather
-   than introducing a red that exists nowhere else. */
 .flash--error {
-  background: var(--surface-raised);
-  border: 1px solid var(--accent);
-  color: var(--accent);
+  background: var(--danger-soft);
+  border-color: var(--danger-border);
+  color: var(--danger);
 }
 .flash--success {
-  border-left: 3px solid var(--accent);
+  border-color: var(--accent);
+}
+.flash--success::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-full);
+  background: var(--success);
+  flex: 0 0 auto;
 }
 
-/* RIGHT RAIL --------------------------------------------------------- */
+/* ==========================================================================
+   DISCOVERY MODULES (people to follow, replaces the old right rail)
+   ========================================================================== */
 
-.rail__search {
-  margin-bottom: var(--spacing-24);
+.discover {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+  margin-bottom: var(--space-6);
+  background: var(--surface);
 }
-.rail__card {
+.discover__title {
+  font-size: var(--text-base);
+  font-weight: var(--weight-bold);
+  margin-bottom: var(--space-1);
+  color: var(--text-primary);
+}
+
+.pitch {
   position: relative;
-  border: 1px solid var(--border-hairline);
-  border-radius: var(--radius-xl);
-  padding: var(--spacing-20);
-  margin-bottom: var(--spacing-24);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6);
+  margin-bottom: var(--space-6);
   overflow: hidden;
+  background: linear-gradient(160deg, var(--surface) 0%, var(--surface-elevated) 100%);
 }
-.rail__card::before {
+.pitch::before {
   content: "";
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 3px;
-  background: var(--gradient-horizon);
+  top: -40%;
+  right: -20%;
+  width: 60%;
+  height: 180%;
+  background: var(--accent-gradient);
+  opacity: 0.12;
+  filter: blur(60px);
+  pointer-events: none;
 }
-.rail__title {
-  font-family: var(--font-display);
-  font-size: var(--text-heading-sm);
+.pitch__title {
+  font-size: var(--text-xl);
   font-weight: var(--weight-bold);
   line-height: 1.25;
-  margin-bottom: var(--spacing-8);
-}
-.rail__lede {
-  font-size: var(--text-body);
-  color: var(--text-secondary);
-  margin: 0 0 var(--spacing-16);
-}
-.rail__section {
-  margin-bottom: var(--spacing-24);
-}
-.rail__heading {
-  font-size: var(--text-meta);
-  font-weight: var(--weight-semibold);
-  color: var(--text-primary);
-  margin-bottom: var(--spacing-12);
-}
-.upnext {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-12);
-}
-.upnext__item {
-  display: block;
-}
-.upnext__pub {
-  font-size: var(--text-meta);
-  font-weight: var(--weight-medium);
+  margin-bottom: var(--space-2);
   color: var(--text-primary);
 }
-.upnext__headline {
-  font-size: var(--text-body);
-  font-weight: var(--weight-regular);
-  color: var(--text-primary);
-  display: block;
-  margin: 2px 0;
-  overflow-wrap: anywhere;
-}
-.upnext__meta {
-  font-size: var(--text-caption);
+.pitch__lede {
+  font-size: var(--text-base);
   color: var(--text-secondary);
+  margin: 0 0 var(--space-4);
+  max-width: 52ch;
 }
-.rail__links {
-  display: flex;
-  gap: var(--spacing-12);
-  flex-wrap: wrap;
-  font-size: var(--text-caption);
-  color: var(--text-secondary);
-  padding-top: var(--spacing-16);
-  border-top: 1px solid var(--border-hairline);
+
+/* ==========================================================================
+   RESPONSIVE POLISH
+   ========================================================================== */
+
+@media (max-width: 767px) {
+  .pagehead__title {
+    font-size: var(--text-xl);
+  }
+  .postdetail__title {
+    font-size: var(--text-2xl);
+  }
+  .post {
+    margin: 0 calc(var(--space-2) * -1);
+    padding: var(--space-4) var(--space-2);
+  }
+  .editor__title {
+    font-size: var(--text-2xl);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1748,10 +2024,6 @@ textarea {
     animation: none !important;
   }
   .btn:active {
-    transform: none;
-  }
-  .btn--primary:hover,
-  .tabbar__item--cta:hover {
     transform: none;
   }
   .action.is-on {

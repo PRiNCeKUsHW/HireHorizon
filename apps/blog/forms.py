@@ -8,9 +8,15 @@ class PostForm(forms.ModelForm):
         model = Post
         fields = ("title", "content", "status")
         widgets = {
-            "title": forms.TextInput(attrs={"placeholder": "Give it a title"}),
+            "title": forms.TextInput(
+                attrs={"class": "editor__title", "placeholder": "Give it a title"}
+            ),
             "content": forms.Textarea(
-                attrs={"rows": 14, "placeholder": "Write your post…"}
+                attrs={
+                    "class": "editor__content",
+                    "rows": 14,
+                    "placeholder": "Start writing…",
+                }
             ),
         }
 

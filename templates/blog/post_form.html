@@ -1,23 +1,48 @@
 {% extends "base.html" %}
+{% load hh %}
 {% block title %}{% if is_edit %}Edit post{% else %}Write a post{% endif %} — HireHorizon{% endblock %}
 
 {% block content %}
-<div class="pagehead">
-  <h1 class="pagehead__title">{% if is_edit %}Edit post{% else %}Write a post{% endif %}</h1>
-</div>
+<div class="editor">
+  <div class="editor__toolbar">
+    <button type="button" class="editor__back" onclick="history.back()">
+      {% icon "arrow-left" 18 %} Back
+    </button>
+    <div class="editor__actions">
+      <button class="btn btn--secondary btn--sm" type="submit" form="post-form"
+              onclick="document.getElementById('id_status').value='draft'">Save draft</button>
+      <button class="btn btn--primary btn--sm" type="submit" form="post-form"
+              onclick="document.getElementById('id_status').value='published'">Publish</button>
+    </div>
+  </div>
 
-<section class="card">
-  <form method="post" class="form" novalidate>
+  <form method="post" id="post-form" novalidate>
     {% csrf_token %}
     {% if form.non_field_errors %}
       <div class="flash flash--error">{{ form.non_field_errors }}</div>
     {% endif %}
-    {% for field in form %}{% include "partials/field.html" %}{% endfor %}
-    <p class="muted">Text only — HireHorizon does not accept image uploads. Mention people with @username.</p>
-    <div class="form__actions">
-      <button class="btn btn--primary" type="submit">{% if is_edit %}Save changes{% else %}Publish{% endif %}</button>
-      <a class="btn btn--ghost" href="{% url 'core:home' %}">Cancel</a>
+
+    <div class="editor__field">
+      {{ form.title|a11y_field }}
+      {% if form.title.errors %}
+        <p class="field__error" id="{{ form.title.auto_id }}_error">
+          {% for error in form.title.errors %}{{ error }}{% endfor %}
+        </p>
+      {% endif %}
     </div>
+    <hr class="editor__divider" />
+    <div class="editor__field">
+      {{ form.content|a11y_field }}
+      {% if form.content.errors %}
+        <p class="field__error" id="{{ form.content.auto_id }}_error">
+          {% for error in form.content.errors %}{{ error }}{% endfor %}
+        </p>
+      {% endif %}
+    </div>
+
+    <div class="editor__status">{{ form.status }}</div>
   </form>
-</section>
+
+  <p class="editor__note">{% icon "info" 15 %} Text only — HireHorizon does not accept image uploads. Mention people with @username.</p>
+</div>
 {% endblock %}

@@ -13,7 +13,7 @@
   <a class="noterow {% if not note.is_read %}is-unread{% endif %}" href="{{ note.target_url }}">
     {% avatar note.actor "sm" %}
     <span class="noterow__text">
-      {% comment %}Unread is shown by an orange rule; this keeps it from being colour-only.{% endcomment %}
+      {% comment %}Unread is also shown by a tinted row background; this keeps it from being colour-only.{% endcomment %}
       {% if not note.is_read %}<span class="sr-only">Unread. </span>{% endif %}
       <strong>{{ note.actor.name }}</strong> <span class="muted">@{{ note.actor.username }}</span>
       <span>{{ note.verb }}</span>
@@ -21,7 +21,7 @@
     <time class="muted" datetime="{{ note.created_at|date:'c' }}">{{ note.created_at|naturaltime }}</time>
   </a>
 {% empty %}
-  {% include "partials/empty.html" with title="No notifications" body="Follows, likes, replies and mentions will show up here." %}
+  {% include "partials/empty.html" with icon="bell" title="No notifications" body="Follows, likes, replies and mentions will show up here." %}
 {% endfor %}
 {% include "partials/pagination.html" %}
 {% endblock %}
