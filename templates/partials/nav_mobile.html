@@ -1,33 +1,28 @@
 {% load hh %}
 <nav class="tabbar" aria-label="Primary">
   <a class="tabbar__item {% if request.resolver_match.view_name == 'core:home' %}is-active{% endif %}" href="{% url 'core:home' %}">
-    <span aria-hidden="true">◎</span><span class="tabbar__label">Home</span>
+    {% icon "home" 22 %}<span class="tabbar__label">Home</span>
   </a>
   <a class="tabbar__item {% if request.resolver_match.view_name == 'core:explore' %}is-active{% endif %}" href="{% url 'core:explore' %}">
-    <span aria-hidden="true">✳</span><span class="tabbar__label">Explore</span>
+    {% icon "compass" 22 %}<span class="tabbar__label">Explore</span>
   </a>
 
   {% if user.is_authenticated %}
     <a class="tabbar__item tabbar__item--cta" href="{% url 'blog:post_create' %}" aria-label="Write a post">
-      <span aria-hidden="true">✚</span>
+      {% icon "plus" 22 %}
     </a>
-    <a class="tabbar__item {% if request.resolver_match.namespace == 'notifications' %}is-active{% endif %}" href="{% url 'notifications:list' %}">
-      <span aria-hidden="true">◔</span><span class="tabbar__label">Alerts</span>
-      {% comment %}The dot is the visual cue; the sr-only text is the only one a screen reader gets.{% endcomment %}
-      {% if unread_notifications %}
-        <span class="badge badge--dot" aria-hidden="true"></span>
-        <span class="sr-only">, {{ unread_notifications }} unread</span>
-      {% endif %}
+    <a class="tabbar__item {% if request.resolver_match.view_name == 'core:search' %}is-active{% endif %}" href="{% url 'core:search' %}">
+      {% icon "search" 22 %}<span class="tabbar__label">Search</span>
     </a>
-    <a class="tabbar__item {% if request.resolver_match.namespace == 'messaging' %}is-active{% endif %}" href="{% url 'messaging:inbox' %}">
-      <span aria-hidden="true">✉</span><span class="tabbar__label">Inbox</span>
+    <a class="tabbar__item {% if request.resolver_match.view_name == 'accounts:profile' and request.resolver_match.kwargs.username == user.username %}is-active{% endif %}" href="{{ user.get_absolute_url }}">
+      {% icon "user" 22 %}<span class="tabbar__label">Profile</span>
     </a>
   {% else %}
     <a class="tabbar__item {% if request.resolver_match.view_name == 'core:search' %}is-active{% endif %}" href="{% url 'core:search' %}">
-      <span aria-hidden="true">⌕</span><span class="tabbar__label">Search</span>
+      {% icon "search" 22 %}<span class="tabbar__label">Search</span>
     </a>
     <a class="tabbar__item" href="{% url 'accounts:login' %}">
-      <span aria-hidden="true">☺</span><span class="tabbar__label">Log in</span>
+      {% icon "user" 22 %}<span class="tabbar__label">Log in</span>
     </a>
   {% endif %}
 </nav>

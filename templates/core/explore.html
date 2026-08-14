@@ -3,7 +3,23 @@
 {% block title %}Explore — HireHorizon{% endblock %}
 
 {% block content %}
-<div class="pagehead"><h1 class="pagehead__title">Explore</h1></div>
+<div class="pagehead">
+  <div>
+    <h1 class="pagehead__title">Explore</h1>
+    <p class="pagehead__lede">Discover ideas, writers and conversations.</p>
+  </div>
+</div>
+
+{% if people %}
+  <section class="discover">
+    <h2 class="discover__title">People to follow</h2>
+    {% for person in people %}
+      {% include "partials/user_row.html" %}
+    {% empty %}
+      <p class="muted">No one to suggest yet.</p>
+    {% endfor %}
+  </section>
+{% endif %}
 
 <nav class="tabs" aria-label="Explore sections">
   <a class="tabs__item {% if tab == 'trending' %}is-active{% endif %}" href="?tab=trending">Trending</a>
@@ -13,20 +29,8 @@
 {% for post in page_obj %}
   {% include "partials/post_card.html" %}
 {% empty %}
-  {% include "partials/empty.html" with title="Nothing here yet" body="When people start publishing, their posts will show up here." %}
+  {% include "partials/empty.html" with icon="compass" title="Nothing here yet" body="When people start publishing, their posts will show up here." %}
 {% endfor %}
 
 {% include "partials/pagination.html" %}
-{% endblock %}
-
-{% block rail %}
-  <section class="rail__card">
-    <h2 class="rail__title">People to follow</h2>
-    {% for person in people %}
-      {% include "partials/user_row.html" %}
-    {% empty %}
-      <p class="muted">No one to suggest yet.</p>
-    {% endfor %}
-  </section>
-  {% include "partials/rail_default.html" %}
 {% endblock %}

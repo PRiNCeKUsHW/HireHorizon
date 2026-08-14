@@ -1,12 +1,14 @@
+{% load hh %}
 {% comment %}
-Reusable empty state. Pass title, body and optionally cta_url/cta_label.
+Reusable empty state. Pass title, body, an icon name (see ICONS in hh.py)
+and optionally cta_url/cta_label.
 
 Pass heading="h1" when this block is the page's only heading — the error
 pages are the case that matters, since they render nothing else and would
 otherwise ship with no h1 at all.
 {% endcomment %}
 <div class="empty">
-  <span class="empty__mark" aria-hidden="true">◌</span>
+  <span class="empty__mark">{% icon icon|default:"info" 26 %}</span>
   {% if heading == "h1" %}
     <h1 class="empty__title">{{ title }}</h1>
   {% else %}

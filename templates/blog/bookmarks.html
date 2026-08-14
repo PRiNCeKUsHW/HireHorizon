@@ -5,7 +5,7 @@
 {% for post in page_obj %}
   {% include "partials/post_card.html" %}
 {% empty %}
-  {% include "partials/empty.html" with title="No bookmarks yet" body="Save posts with the bookmark button and find them here later." cta_url="/explore/" cta_label="Explore posts" %}
+  {% include "partials/empty.html" with icon="bookmark" title="No bookmarks yet" body="Save posts with the bookmark button and find them here later." cta_url="/explore/" cta_label="Explore posts" %}
 {% endfor %}
 {% include "partials/pagination.html" %}
 {% endblock %}
