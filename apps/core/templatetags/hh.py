@@ -1,3 +1,5 @@
+import zlib
+
 from django import template
 from django.urls import reverse
 from django.utils.html import escape, linebreaks
@@ -44,10 +46,21 @@ def compact(number):
     return f"{round(number / 1_000_000, 1):g}M"
 
 
+AVATAR_HUE_COUNT = 4
+
+
 @register.inclusion_tag("partials/avatar.html")
 def avatar(user, size="md"):
-    """CSS avatar built from the user's initials. No uploads anywhere."""
-    return {"user": user, "size": size}
+    """CSS avatar built from the user's initials. No uploads anywhere.
+
+    The gradient variant is picked from a small fixed set via a stable hash
+    of the username. This uses crc32, not Python's built-in hash() — hash()
+    is salted per process via PYTHONHASHSEED, so under multiple gunicorn
+    workers the same user would render a different avatar colour depending
+    on which worker answered the request.
+    """
+    hue = zlib.crc32(user.username.encode("utf-8")) % AVATAR_HUE_COUNT
+    return {"user": user, "size": size, "hue": hue}
 
 
 @register.filter

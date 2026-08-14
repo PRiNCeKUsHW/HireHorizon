@@ -1,6 +1,7 @@
 {% comment %}
 CSS-only avatar. HireHorizon accepts no image uploads, so identity is drawn
-from the user's initials. Neutral by design: the palette is monochrome plus a
-single signal orange, which is reserved for actions.
+from the user's initials on a gradient background — see avatar--hue-N in
+app.css. The hue is a stable hash of the username (apps/core/templatetags/hh.py),
+so a given user always gets the same colour.
 {% endcomment %}
-<span class="avatar avatar--{{ size }}" aria-hidden="true">{{ user.initials }}</span>
+<span class="avatar avatar--{{ size }} avatar--hue-{{ hue }}" aria-hidden="true">{{ user.initials }}</span>

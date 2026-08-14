@@ -1,34 +1,38 @@
-/* HireHorizon — editorial newsroom UI.
+/* HireHorizon — bold & vibrant UI.
  *
- * Monochrome + one signal orange. Flat surfaces, hairline dividers, compact
- * metadata, serif for reading and system-ui for chrome. Mobile-first: the
- * three-column desktop layout assembles at 768px and 1100px.
+ * A violet-to-gold "Horizon" gradient family carries the brand's energy,
+ * against calm neutral surfaces everywhere long-form text actually gets
+ * read. Mobile-first: the three-column desktop layout assembles at 768px
+ * and 1100px.
  *
  * Fonts are system/substitute stacks on purpose — this app is served from a
  * phone, so no webfont request should stand between a reader and the text.
+ * "Bold" is carried by weight, scale, colour and motion instead of a
+ * custom typeface.
  *
  * Colour is two layers. The primitives below are raw values and are never
  * used by a component directly; the semantic tokens beneath them are. That
  * indirection is what lets the whole UI flip to a dark theme from one block.
+ * The gradient tokens are a third, theme-invariant layer: the brand gradient
+ * looks the same in light and dark, the same way the old brand mark did.
  */
 
 :root {
   color-scheme: light dark;
 
-  /* PRIMITIVES — raw values, referenced only by the semantic layer ------ */
+  /* PRIMITIVES — raw values, referenced only by the semantic/gradient layers */
 
-  /* The brand orange. It measures 2.91:1 on white, which is below the 4.5:1
-     floor for text and the 3:1 floor for meaningful indicators, so it is not
-     allowed to carry meaning on a light background. It survives as the brand
-     mark (a logotype, and exempt) and returns as the accent in dark mode,
-     where it measures 6.43:1. */
-  --color-signal-orange: #ff6719;
-  /* Deep enough to clear 4.5:1 on every light surface it can land on, not
-     just on paper — an @mention inside a received chat bubble sits on
-     --surface-fill, where #c2410c would have measured 4.46:1. */
-  --color-orange-deep: #bb3f0b; /* 5.48:1 on white, 4.73:1 on #eeeeee */
-  --color-orange-deeper: #8f3a0c; /* 7.56:1 on white */
-  --color-orange-light: #ff8a4c; /* 7.21:1 on #121212 */
+  /* The Horizon spectrum. Violet and magenta are load-bearing for text (both
+     independently clear 4.5:1 with a white label); orange and gold are
+     decoration only — see the contrast note by --gradient-horizon below for
+     why they can never sit behind a label. */
+  --color-horizon-violet: #7c3aed;
+  --color-horizon-magenta: #c2185b; /* 5.87:1 on white, 5.06:1 on #eeeeee */
+  --color-horizon-rose: #a61257; /* 7.38:1 on white, 6.36:1 on #eeeeee */
+  --color-horizon-orange: #ff6a00; /* decorative only, see below */
+  --color-horizon-gold: #ffb020; /* decorative only, see below */
+  --color-horizon-pink: #ff6fa5; /* 7.20:1 on #121212, 5.81:1 on #262626 */
+  --color-horizon-coral: #ff8a4c; /* 8.02:1 on #121212, 6.48:1 on #262626 */
 
   --color-paper: #ffffff;
   --color-ink: #363737; /* 11.94:1 on white */
@@ -48,6 +52,35 @@
   --color-fog: #e8e8e8; /* 15.29:1 on #121212 */
   --color-smoke: #a8a8a8; /* 7.88:1 on #121212, 6.36:1 on #262626 */
 
+  /* GRADIENTS — theme-invariant. Two, deliberately, not one:
+     --gradient-cta is the only one ever allowed behind a text label, because
+     both its stops independently clear 4.5:1 against --gradient-on (white):
+     violet 5.70:1, magenta 5.87:1. --gradient-horizon is the full four-stop
+     spectrum and is decoration only — a signature stripe/glow, never text
+     behind it — because no single label colour clears all four stops at
+     once (white-on-orange 2.87:1, white-on-gold 1.83:1; charcoal-on-violet
+     2.70:1, charcoal-on-magenta 2.62:1: every combination fails something). */
+  --gradient-cta: linear-gradient(
+    135deg,
+    var(--color-horizon-violet) 0%,
+    var(--color-horizon-magenta) 100%
+  );
+  --gradient-horizon: linear-gradient(
+    135deg,
+    var(--color-horizon-violet) 0%,
+    var(--color-horizon-magenta) 38%,
+    var(--color-horizon-orange) 72%,
+    var(--color-horizon-gold) 100%
+  );
+  --gradient-on: #ffffff;
+
+  /* Pre-verified avatar gradient pairs — each pair independently clears
+     4.5:1 against white initials, same discipline as --gradient-cta. */
+  --gradient-avatar-0: linear-gradient(135deg, #7c3aed, #c2185b); /* violet -> magenta */
+  --gradient-avatar-1: linear-gradient(135deg, #a61257, #db2777); /* rose -> hot pink */
+  --gradient-avatar-2: linear-gradient(135deg, #4f46e5, #2563eb); /* indigo -> blue */
+  --gradient-avatar-3: linear-gradient(135deg, #86198f, #5b21b6); /* fuchsia -> violet */
+
   /* SEMANTIC — light theme. Components reference only these. ----------- */
 
   --surface-page: var(--color-paper);
@@ -63,19 +96,22 @@
   --border-hairline: var(--color-cloud);
   --border-control: var(--color-iron);
 
-  /* --accent carries every job that needs contrast: orange text, fills that
-     hold a label, the focus ring, and active indicators. --accent-bright is
-     decoration only and nothing may depend on reading against it. */
-  --accent: var(--color-orange-deep);
-  --accent-press: var(--color-orange-deeper);
+  /* --accent carries every job that needs contrast as flat text/borders:
+     mentions, focus rings, active indicators, chip borders. Filled chrome
+     (buttons, badges, avatars) uses --gradient-cta instead — see the
+     component rules below for which is which. */
+  --accent: var(--color-horizon-magenta);
+  --accent-press: var(--color-horizon-rose);
   --accent-on: var(--color-paper);
-  --accent-bright: var(--color-signal-orange);
 
-  /* Type */
+  --shadow-glow: 0 8px 20px -6px rgba(194, 24, 91, 0.45);
+
+  /* Type — sans everywhere, "bold" comes from weight/scale, not a second
+     typeface. */
   --font-ui: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
     "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  --font-display: Charter, "Iowan Old Style", "Source Serif Pro", Georgia, serif;
-  --font-read: Charter, "Iowan Old Style", "Source Serif Pro", Georgia, serif;
+  --font-display: var(--font-ui);
+  --font-read: var(--font-ui);
   --font-mono: "JetBrains Mono", "Fira Code", "Source Code Pro", Menlo, Consolas,
     monospace;
 
@@ -84,14 +120,16 @@
   --text-body: 15px;
   --text-read: 19px;
   --text-subheading: 20px;
-  --text-heading-sm: 24px;
-  --text-heading: 32px;
+  --text-heading-sm: 26px;
+  --text-heading: 36px;
 
   --weight-regular: 400;
   --weight-medium: 500;
   --weight-semibold: 600;
+  --weight-bold: 700;
+  --weight-extrabold: 800;
 
-  /* Spacing — 4px base, compact */
+  /* Spacing — 4px base, unchanged from the previous design */
   --spacing-4: 4px;
   --spacing-8: 8px;
   --spacing-12: 12px;
@@ -108,25 +146,27 @@
   --tabbar-h: 56px;
   --touch-min: 44px;
 
-  /* Radius — only these four values are used anywhere */
-  --radius-md: 4px;
-  --radius-lg: 8px;
-  --radius-xl: 12px;
+  /* Radius — rounder than before, still exactly four values anywhere */
+  --radius-md: 6px;
+  --radius-lg: 10px;
+  --radius-xl: 14px;
   --radius-full: 9999px;
 
-  /* Elevation — buttons get an inset edge; only the floating CTA truly lifts */
+  /* Elevation — buttons get an inset edge; the primary button and FAB also
+     lift with a coloured glow on hover (see .btn--primary, .tabbar__item--cta) */
   --shadow-inset: rgba(255, 255, 255, 0.2) 0 1px 0 0 inset,
     rgba(0, 0, 0, 0.1) 0 -1px 0 0 inset;
   --shadow-float: rgba(0, 0, 0, 0.1) 0 4px 6px -1px,
     rgba(0, 0, 0, 0.06) 0 2px 4px -1px;
 
   --speed: 0.18s;
+  --speed-fast: 0.12s;
 }
 
 /* SEMANTIC — dark theme. Only the semantic layer is reassigned, so every
-   component below inherits the theme without knowing it exists.
-   The bright brand orange comes back here: on #121212 it reads 6.43:1, and
-   its label flips to near-black rather than white. */
+   component below inherits the theme without knowing it exists. The
+   gradient tokens above are NOT reassigned here — the brand gradient stays
+   identical in both themes, same as the old brand mark did. */
 @media (prefers-color-scheme: dark) {
   :root {
     --surface-page: var(--color-night);
@@ -142,9 +182,11 @@
     --border-hairline: var(--color-night-line);
     --border-control: var(--color-night-edge);
 
-    --accent: var(--color-signal-orange);
-    --accent-press: var(--color-orange-light);
+    --accent: var(--color-horizon-pink);
+    --accent-press: var(--color-horizon-coral);
     --accent-on: var(--color-night);
+
+    --shadow-glow: 0 8px 20px -6px rgba(255, 111, 165, 0.35);
 
     --shadow-inset: rgba(255, 255, 255, 0.12) 0 1px 0 0 inset,
       rgba(0, 0, 0, 0.3) 0 -1px 0 0 inset;
@@ -221,7 +263,7 @@ h1,
 h2,
 h3 {
   margin: 0 0 var(--spacing-8);
-  line-height: 1.24;
+  line-height: 1.2;
 }
 
 .muted {
@@ -332,7 +374,8 @@ h3 {
   align-items: center;
   gap: var(--spacing-8);
   font-size: var(--text-subheading);
-  font-weight: var(--weight-semibold);
+  font-weight: var(--weight-extrabold);
+  letter-spacing: -0.01em;
   margin-bottom: var(--spacing-24);
   padding: 0 var(--spacing-12);
   font-family: var(--font-display);
@@ -340,19 +383,16 @@ h3 {
 .brand:hover {
   color: var(--text-primary);
 }
-/* The one place the original vivid orange still lives on a light background.
-   Its letter is charcoal rather than white — 5.29:1 against the chip, where
-   white would have been 2.91:1. */
 .brand__mark {
   display: grid;
   place-items: center;
   width: 28px;
   height: 28px;
   border-radius: var(--radius-lg);
-  background: var(--accent-bright);
-  color: var(--color-charcoal);
+  background: var(--gradient-cta);
+  color: var(--gradient-on);
   font-family: var(--font-ui);
-  font-weight: var(--weight-semibold);
+  font-weight: var(--weight-extrabold);
   font-size: var(--text-body);
   flex: 0 0 auto;
 }
@@ -387,6 +427,19 @@ h3 {
 }
 .nav__item.is-active {
   color: var(--accent);
+  font-weight: var(--weight-semibold);
+}
+/* A small gradient rail on the active item, echoing the brand gradient
+   rather than just recolouring the text. */
+.nav__item.is-active::before {
+  content: "";
+  position: absolute;
+  left: -6px;
+  top: 20%;
+  bottom: 20%;
+  width: 3px;
+  border-radius: var(--radius-full);
+  background: var(--gradient-cta);
 }
 .nav__icon {
   width: 20px;
@@ -401,8 +454,8 @@ h3 {
 
 .badge {
   margin-left: auto;
-  background: var(--accent);
-  color: var(--accent-on);
+  background: var(--gradient-cta);
+  color: var(--gradient-on);
   border-radius: var(--radius-full);
   padding: 0 7px;
   font-size: var(--text-caption);
@@ -480,12 +533,15 @@ h3 {
   width: var(--touch-min);
   height: var(--touch-min);
   border-radius: var(--radius-full);
-  background: var(--accent);
-  color: var(--accent-on);
+  background: var(--gradient-cta);
+  color: var(--gradient-on);
   box-shadow: var(--shadow-inset);
+  transition: transform var(--speed-fast) ease, box-shadow var(--speed) ease;
 }
 .tabbar__item--cta:hover {
-  color: var(--accent-on);
+  color: var(--gradient-on);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-inset), var(--shadow-glow);
 }
 .badge--dot {
   position: absolute;
@@ -551,25 +607,27 @@ h3 {
   border-radius: var(--radius-full);
   font-family: var(--font-ui);
   font-size: var(--text-body);
-  font-weight: var(--weight-medium);
+  font-weight: var(--weight-semibold);
   line-height: 1.4;
   cursor: pointer;
   min-height: var(--touch-min);
   transition: background-color var(--speed) ease, color var(--speed) ease,
-    border-color var(--speed) ease, transform var(--speed) ease;
+    border-color var(--speed) ease, transform var(--speed-fast) ease,
+    box-shadow var(--speed) ease;
 }
 .btn:active {
   transform: scale(0.98);
 }
 
 .btn--primary {
-  background: var(--accent);
-  color: var(--accent-on);
+  background: var(--gradient-cta);
+  color: var(--gradient-on);
   box-shadow: var(--shadow-inset);
 }
 .btn--primary:hover {
-  background: var(--accent-press);
-  color: var(--accent-on);
+  color: var(--gradient-on);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-inset), var(--shadow-glow);
 }
 
 .btn--ghost {
@@ -587,8 +645,8 @@ h3 {
   color: var(--text-primary);
 }
 .btn--outline:hover {
-  border-color: var(--text-primary);
-  color: var(--text-primary);
+  border-color: var(--accent);
+  color: var(--accent);
 }
 
 .btn--danger {
@@ -630,7 +688,7 @@ h3 {
   pointer-events: none;
 }
 
-/* Text-only orange call to action, as on each feed row */
+/* Text-only accent call to action, as on each feed row */
 .linkcta {
   position: relative;
   display: inline-flex;
@@ -640,7 +698,7 @@ h3 {
   padding: 0;
   font-family: var(--font-ui);
   font-size: var(--text-body);
-  font-weight: var(--weight-medium);
+  font-weight: var(--weight-semibold);
   color: var(--accent);
   cursor: pointer;
   transition: color var(--speed) ease;
@@ -716,30 +774,46 @@ h3 {
 .pagehead__title {
   font-family: var(--font-display);
   font-size: var(--text-heading-sm);
-  font-weight: var(--weight-medium);
-  line-height: 1.25;
+  font-weight: var(--weight-extrabold);
+  letter-spacing: -0.01em;
+  line-height: 1.2;
   margin: 0;
 }
 
 .section__title {
   font-family: var(--font-display);
   font-size: var(--text-subheading);
-  font-weight: var(--weight-medium);
+  font-weight: var(--weight-bold);
   margin-bottom: var(--spacing-12);
 }
 
-/* AVATAR — initials only, no uploads anywhere in the product */
+/* AVATAR — initials only, no uploads anywhere in the product. Background is
+   a gradient picked from a small set via a stable per-user hash (see
+   apps/core/templatetags/hh.py), so the feed reads with real colour variety
+   instead of one repeated flat tone. */
 
 .avatar {
   display: inline-grid;
   place-items: center;
   flex: 0 0 auto;
   border-radius: var(--radius-full);
-  background: var(--surface-fill);
-  color: var(--text-primary);
+  background: var(--gradient-cta);
+  color: var(--gradient-on);
   font-family: var(--font-ui);
-  font-weight: var(--weight-semibold);
+  font-weight: var(--weight-bold);
   line-height: 1;
+}
+.avatar--hue-0 {
+  background: var(--gradient-avatar-0);
+}
+.avatar--hue-1 {
+  background: var(--gradient-avatar-1);
+}
+.avatar--hue-2 {
+  background: var(--gradient-avatar-2);
+}
+.avatar--hue-3 {
+  background: var(--gradient-avatar-3);
 }
 .avatar--xs {
   width: 24px;
@@ -820,14 +894,14 @@ h3 {
   flex: 0 0 auto;
 }
 
-/* Titles are user-written and can be a single unbroken string. The old
-   `overflow-x: hidden` on body used to swallow that; now that the page no
-   longer masks overflow, the text has to break on its own. */
+/* Titles are user-written and can be a single unbroken string, so they must
+   be able to break on their own (no overflow masking upstream). */
 .post__title {
   font-family: var(--font-display);
   font-size: var(--text-heading-sm);
-  font-weight: var(--weight-medium);
-  line-height: 1.25;
+  font-weight: var(--weight-extrabold);
+  letter-spacing: -0.01em;
+  line-height: 1.2;
   margin: 0 0 var(--spacing-8);
   overflow-wrap: anywhere;
 }
@@ -838,7 +912,7 @@ h3 {
 .post__excerpt {
   font-family: var(--font-read);
   font-size: var(--text-read);
-  line-height: 1.5;
+  line-height: 1.55;
   color: var(--text-primary);
   margin: 0 0 var(--spacing-12);
   overflow-wrap: anywhere;
@@ -896,7 +970,8 @@ h3 {
   color: var(--text-secondary);
   cursor: pointer;
   min-height: 32px;
-  transition: color var(--speed) ease;
+  transform: scale(1);
+  transition: color var(--speed) ease, transform var(--speed-fast) ease;
 }
 .action::after {
   content: "";
@@ -913,8 +988,12 @@ h3 {
 .action:active {
   opacity: 0.6;
 }
+/* A permanent, slightly larger scale marks the active state rather than a
+   one-shot animation, so a feed that loads with posts already liked doesn't
+   replay a "pop" on every card. */
 .action.is-on {
   color: var(--accent);
+  transform: scale(1.08);
 }
 .action--end {
   margin-left: auto;
@@ -939,8 +1018,9 @@ h3 {
 .postdetail__title {
   font-family: var(--font-display);
   font-size: var(--text-heading);
-  font-weight: var(--weight-medium);
-  line-height: 1.24;
+  font-weight: var(--weight-extrabold);
+  letter-spacing: -0.02em;
+  line-height: 1.15;
   margin: var(--spacing-16) 0 var(--spacing-8);
   overflow-wrap: anywhere;
 }
@@ -957,7 +1037,7 @@ h3 {
 .postdetail__body {
   font-family: var(--font-read);
   font-size: var(--text-read);
-  line-height: 1.58;
+  line-height: 1.6;
   margin: var(--spacing-24) 0;
   overflow-wrap: anywhere;
 }
@@ -968,7 +1048,7 @@ h3 {
 /* Underlined as well as coloured, so it is not distinguished by colour alone. */
 .mention {
   color: var(--accent);
-  font-weight: var(--weight-medium);
+  font-weight: var(--weight-semibold);
   text-decoration: underline;
   text-underline-offset: 2px;
 }
@@ -976,15 +1056,34 @@ h3 {
 /* SECTIONS + CARDS (sidebar, forms) ---------------------------------- */
 
 .card {
+  position: relative;
   background: var(--surface-raised);
   border: 1px solid var(--border-hairline);
   border-radius: var(--radius-xl);
   padding: var(--spacing-20);
   margin-bottom: var(--spacing-16);
+  overflow: hidden;
+}
+/* The signature "horizon stripe": a thin slice of the full brand gradient
+   along the top edge of every boxed surface. Decorative only — see the
+   --gradient-horizon contrast note at the top of the file for why this
+   never sits behind text. */
+.card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--gradient-horizon);
 }
 .card--flat {
   border: 0;
   padding: 0;
+  overflow: visible;
+}
+.card--flat::before {
+  content: none;
 }
 
 .section {
@@ -994,23 +1093,61 @@ h3 {
 /* HERO --------------------------------------------------------------- */
 
 .hero {
+  position: relative;
   padding: var(--spacing-32) 0 var(--spacing-24);
   border-bottom: 1px solid var(--border-hairline);
   margin-bottom: var(--spacing-32);
+  overflow: hidden;
+}
+.hero::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: var(--gradient-horizon);
+}
+/* A soft, low-opacity glow behind the copy. Contrast is protected by the
+   opacity margin: text on this surface already reads well above 10:1
+   against --surface-page, so a ~0.12-0.2 opacity wash behind it can't pull
+   the blended background anywhere near the 4.5:1 floor. */
+.hero::after {
+  content: "";
+  position: absolute;
+  top: -20%;
+  right: -10%;
+  width: 60%;
+  height: 140%;
+  background: var(--gradient-horizon);
+  opacity: 0.12;
+  filter: blur(60px);
+  pointer-events: none;
+  z-index: -1;
+}
+@media (prefers-color-scheme: dark) {
+  .hero::after {
+    opacity: 0.2;
+  }
 }
 .hero__eyebrow {
+  display: inline-block;
   font-size: var(--text-meta);
-  font-weight: var(--weight-medium);
-  color: var(--accent);
-  margin: 0 0 var(--spacing-8);
+  font-weight: var(--weight-semibold);
+  color: var(--gradient-on);
+  background: var(--gradient-cta);
+  margin: 0 0 var(--spacing-12);
+  padding: var(--spacing-4) var(--spacing-12);
+  border-radius: var(--radius-full);
   letter-spacing: 0.04em;
   text-transform: uppercase;
 }
 .hero__title {
   font-family: var(--font-display);
   font-size: var(--text-heading);
-  font-weight: var(--weight-medium);
-  line-height: 1.24;
+  font-weight: var(--weight-extrabold);
+  letter-spacing: -0.02em;
+  line-height: 1.1;
   margin: 0 0 var(--spacing-12);
 }
 .hero__lede {
@@ -1032,12 +1169,12 @@ h3 {
 .prose {
   font-family: var(--font-read);
   font-size: var(--text-read);
-  line-height: 1.58;
+  line-height: 1.6;
 }
 .prose h2 {
   font-family: var(--font-display);
   font-size: var(--text-heading-sm);
-  font-weight: var(--weight-medium);
+  font-weight: var(--weight-bold);
   margin-top: 1.1em;
 }
 .prose .lede {
@@ -1070,7 +1207,7 @@ h3 {
 }
 .field label {
   font-size: var(--text-meta);
-  font-weight: var(--weight-medium);
+  font-weight: var(--weight-semibold);
 }
 .field small {
   font-size: var(--text-caption);
@@ -1108,7 +1245,7 @@ textarea::placeholder {
 input:focus,
 textarea:focus,
 select:focus {
-  border-color: var(--text-primary);
+  border-color: var(--accent);
 }
 /* The previous rule here was `input:focus { outline: none }`, which at
    specificity (0,1,1) beat the global :focus-visible (0,1,0) and left every
@@ -1147,7 +1284,10 @@ textarea {
   gap: var(--spacing-12);
   flex-wrap: wrap;
 }
-.replying-to {
+/* :not([hidden]) rather than a bare .replying-to: an unscoped `display: flex`
+   here has equal specificity to the UA stylesheet's `[hidden]{display:none}`
+   and wins on source order, so the banner rendered even while hidden. */
+.replying-to:not([hidden]) {
   width: 100%;
   font-size: var(--text-meta);
   color: var(--text-secondary);
@@ -1185,7 +1325,7 @@ textarea {
   min-height: var(--touch-min);
   padding: 0 0 var(--spacing-12);
   font-size: var(--text-body);
-  font-weight: var(--weight-medium);
+  font-weight: var(--weight-semibold);
   color: var(--text-secondary);
   white-space: nowrap;
   border-bottom: 2px solid transparent;
@@ -1261,7 +1401,8 @@ textarea {
 .profile__name {
   font-family: var(--font-display);
   font-size: var(--text-heading-sm);
-  font-weight: var(--weight-medium);
+  font-weight: var(--weight-extrabold);
+  letter-spacing: -0.01em;
   margin: var(--spacing-16) 0 0;
 }
 .profile__handle {
@@ -1294,7 +1435,7 @@ textarea {
 }
 .profile__stats strong {
   color: var(--text-primary);
-  font-weight: var(--weight-semibold);
+  font-weight: var(--weight-bold);
 }
 
 /* COMMENTS ----------------------------------------------------------- */
@@ -1385,7 +1526,7 @@ textarea {
   color: var(--text-secondary);
   white-space: nowrap;
 }
-/* The orange rule is the glance-level cue; the template also carries an
+/* The accent rule is the glance-level cue; the template also carries an
    sr-only "Unread", so the state is never conveyed by colour alone. */
 .noterow.is-unread {
   border-left: 2px solid var(--accent);
@@ -1410,14 +1551,15 @@ textarea {
 }
 .bubble--mine {
   align-self: flex-end;
-  background: var(--accent);
-  color: var(--accent-on);
+  background: var(--gradient-cta);
+  color: var(--gradient-on);
 }
-/* The timestamp used to be white at 78% opacity over orange (≈2.15:1). It
-   now takes the full label colour and relies on size for hierarchy. */
+/* The timestamp used to be a low-opacity label colour, which measured badly
+   against a filled background. It now takes the full label colour and
+   relies on size for hierarchy. */
 .bubble--mine .muted,
 .bubble--mine .bubble__time {
-  color: var(--accent-on);
+  color: var(--gradient-on);
 }
 .bubble__body {
   overflow-wrap: anywhere;
@@ -1440,13 +1582,14 @@ textarea {
 .empty__mark {
   display: block;
   font-size: var(--text-heading);
-  color: var(--border-control);
+  color: var(--accent);
+  opacity: 0.55;
   margin-bottom: var(--spacing-8);
 }
 .empty__title {
   font-family: var(--font-display);
   font-size: var(--text-heading-sm);
-  font-weight: var(--weight-medium);
+  font-weight: var(--weight-bold);
   margin-bottom: var(--spacing-4);
 }
 .empty__body {
@@ -1470,7 +1613,7 @@ textarea {
   border-bottom: 0;
 }
 .linklist a {
-  font-weight: var(--weight-medium);
+  font-weight: var(--weight-semibold);
 }
 .linklist span {
   font-size: var(--text-meta);
@@ -1505,7 +1648,7 @@ textarea {
   font-size: var(--text-body);
   color: var(--text-strong);
 }
-/* Orange is the system's only attention colour, so errors borrow it rather
+/* Accent is the system's only attention colour, so errors borrow it rather
    than introducing a red that exists nowhere else. */
 .flash--error {
   background: var(--surface-raised);
@@ -1522,15 +1665,26 @@ textarea {
   margin-bottom: var(--spacing-24);
 }
 .rail__card {
+  position: relative;
   border: 1px solid var(--border-hairline);
   border-radius: var(--radius-xl);
   padding: var(--spacing-20);
   margin-bottom: var(--spacing-24);
+  overflow: hidden;
+}
+.rail__card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--gradient-horizon);
 }
 .rail__title {
   font-family: var(--font-display);
   font-size: var(--text-heading-sm);
-  font-weight: var(--weight-medium);
+  font-weight: var(--weight-bold);
   line-height: 1.25;
   margin-bottom: var(--spacing-8);
 }
@@ -1594,6 +1748,13 @@ textarea {
     animation: none !important;
   }
   .btn:active {
+    transform: none;
+  }
+  .btn--primary:hover,
+  .tabbar__item--cta:hover {
+    transform: none;
+  }
+  .action.is-on {
     transform: none;
   }
 }
