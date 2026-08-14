@@ -42,40 +42,6 @@
       </div>
     </header>
 
-    {% comment %}
-      Desktop app bar: quick global search plus notifications/avatar, so
-      those are reachable without scrolling to the bottom of the sidebar.
-      Hidden below 768px in favour of .topbar above.
-    {% endcomment %}
-    <header class="appbar">
-      <form class="appbar__search" action="{% url 'core:search' %}" method="get" role="search">
-        <label class="sr-only" for="appbar-q">Search HireHorizon</label>
-        <div class="searchbox">
-          {% icon "search" 18 %}
-          <input id="appbar-q" type="search" name="q" placeholder="Search HireHorizon"
-                 enterkeyhint="search" value="{{ request.GET.q|default:'' }}" />
-        </div>
-      </form>
-      <span class="appbar__spacer"></span>
-      <div class="appbar__actions">
-        {% if user.is_authenticated %}
-          <a class="appbar__iconbtn" href="{% url 'notifications:list' %}" aria-label="Notifications{% if unread_notifications %}, {{ unread_notifications }} unread{% endif %}">
-            {% icon "bell" 20 %}
-            {% if unread_notifications %}<span class="appbar__dot" aria-hidden="true"></span>{% endif %}
-          </a>
-          <a class="appbar__iconbtn" href="{% url 'messaging:inbox' %}" aria-label="Messages">
-            {% icon "mail" 20 %}
-          </a>
-          <a href="{{ user.get_absolute_url }}" aria-label="Your profile">
-            {% avatar user "sm" %}
-          </a>
-        {% else %}
-          <a class="btn btn--secondary btn--sm" href="{% url 'accounts:login' %}">Sign in</a>
-          <a class="btn btn--primary btn--sm" href="{% url 'accounts:register' %}">Get started</a>
-        {% endif %}
-      </div>
-    </header>
-
     <div class="shell">
       {% include "partials/nav_sidebar.html" %}
 
